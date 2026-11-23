@@ -1,7 +1,7 @@
 # Especificação de Requisitos — Lucy Cabeleireira
 
 **Etapa 02 — Levantamento e especificação de requisitos**
-**Responsável:** [Seu nome] · **Data:** 23/11/2026 · **Versão:** 0.3 (ver histórico de mudanças na seção 7)
+**Responsável:** [Seu nome] · **Data:** 23/11/2026 · **Versão:** 0.4 (ver histórico de mudanças na seção 7)
 **Base:** Documento de Visão v0.1 e entrevista com a Lucy. Nenhum requisito foi criado sem origem nessa base.
 
 **Legenda de prioridade:** 🔴 **Deve ter** (MVP) · 🟡 **Deveria ter** (fazer se der tempo) · ⚪ **Futuro**
@@ -41,6 +41,12 @@
 | RF-13 | Cadastrar e editar tinturas: **nome/código (ex.: 7.0), marca, quantidade de tubos e estoque mínimo**. | 🔴 | ✅ (*"Tubo e também confirmo quantidade"*) |
 | RF-14 | Registrar **entrada de tubos** (compra) para repor o estoque. | 🔴 | ✅ |
 | RF-15 | Exibir **alerta** das tinturas com quantidade igual ou abaixo do mínimo. | 🔴 | ✅ |
+
+### Uso fora do horário de atendimento *(acrescentados na v0.4)*
+| ID | Requisito | Prioridade | Situação |
+|---|---|---|---|
+| RF-16 | Exibir a lista **"Para finalizar"**: atendimentos que já começaram e não foram finalizados nem cancelados, **de qualquer dia**, para a Lucy registrar **no fechamento do salão**, a partir das anotações no papel. | 🔴 | ✅ (*"anotar no papel e passar depois"*) |
+| RF-17 | Exibir um **resumo do dia** no topo da agenda com as **próximas clientes a partir de agora** e **quem delas tem alergia**: de manhã mostra o dia todo; no almoço, só a tarde. | 🔴 | ✅ (*"antes de abrir o salão e na hora do almoço"*) |
 
 ---
 
@@ -158,3 +164,4 @@ Liga cada problema ao requisito, à tela, ao código e ao teste. As colunas **C�
 | 0.1 | 23/11/2026 | Primeira versão | Entrevista com a Lucy | [Seu nome] |
 | 0.2 | 23/11/2026 | **Removida a exigência de consentimento** para guardar alergias (RF-07, RNF-06, CA-04.2) | Durante os testes da Etapa 05, percebi que a caixinha de consentimento **não provava nada** (só registrava que a Lucy disse que a cliente autorizou) e criava trabalho no dia a dia. A LGPD permite tratar dado sensível sem consentimento para a **proteção da incolumidade física** do titular (art. 11, II, "e"), que é exatamente a finalidade de anotar a alergia: evitar uma reação no atendimento. A proteção continua por outros meios: acesso só com login e exclusão completa dos dados. *Observação: é uma interpretação feita no contexto acadêmico, não um parecer jurídico.* | [Seu nome] |
 | 0.3 | 23/11/2026 | **Duração do agendamento passa a ser realmente opcional** (RF-02) e a RN-01 explica o que acontece sem duração | No teste, percebi que o sistema **exigia** a duração, mas o RF-02 já dizia "duração estimada (opcional)": uma **inconsistência entre requisito e código**. Corrigido no banco (migração `002-duracao-opcional.sql`), no servidor e na tela. Limitação aceita: sem duração, o sistema só bloqueia outra cliente no **mesmo horário de início**. | [Seu nome] |
+| 0.4 | 23/11/2026 | **Acrescentados RF-16 (Para finalizar) e RF-17 (resumo do dia)** | A Lucy informou que **não usa o celular durante os atendimentos**: usa **de manhã e no almoço** para ver quem vem e quem tem alergia, e **no fechamento** passa os tubos que anotou no papel. A hipótese H1 da visão caiu. O sistema foi pensado para uso "na hora", então foi preciso permitir finalizar depois (de qualquer dia) e mostrar as alergias das próximas clientes. | Lucy + [Seu nome] |

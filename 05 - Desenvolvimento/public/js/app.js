@@ -20,6 +20,12 @@ function diaISO(diasAMais = 0) {
   d.setDate(d.getDate() + diasAMais);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
+// Data e hora de agora no aparelho: "2026-11-23 12:30"
+function agoraLocal() {
+  const d = new Date();
+  return `${diaISO(0)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+}
+
 // "2026-11-24" → "terça, 24/11"
 const rotuloDia = iso => `${DIAS[new Date(iso + 'T12:00').getDay()]}, ${dataBR(iso).slice(0, 5)}`;
 // "hoje", "amanhã" ou "no dia 30/11" — usado na mensagem do WhatsApp
@@ -43,6 +49,11 @@ function linkWhatsApp(telefone, mensagem) {
   let numero = telefone.replace(/\D/g, '');
   if (numero.length <= 11) numero = '55' + numero;
   return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+}
+
+// RF-11: mensagem de lembrete para a cliente voltar (sem emoji, ver D-04)
+function mensagemRetorno(v) {
+  return `Olá, ${v.nome.split(' ')[0]}! Aqui é a Lucy. Já está chegando a hora de renovar: ${v.servico.toLowerCase()}. Quer marcar um horário?`;
 }
 
 // RN-06: mensagem padrão de confirmação.
@@ -93,6 +104,8 @@ const estado = {
   agenda: [],           // horários de hoje e amanhã (RF-03)
   diaExtra: '',         // outro dia escolhido pela Lucy
   agendaExtra: [],
+  horaDeVoltar: [],     // RF-11
+  paraFinalizar: [],    // RF-16: já passaram e não foram finalizados
   busca: '',
   ficha: null,          // ficha aberta (com histórico)
   janela: null          // janela aberta: { tipo, ... } ou null
@@ -119,7 +132,7 @@ function abas() {
       ${contagem ? `<span class="contagem" aria-label="${contagem} avisos">${contagem}</span>` : ''}
     </button>`;
   return `<nav class="abas" aria-label="Menu principal">
-    ${botao('agenda', '📅', 'Agenda', 0)}${botao('clientes', '👩', 'Clientes', 0)}${botao('tinturas', '🎨', 'Tinturas', baixas)}
+    ${botao('agenda', '📅', 'Agenda', estado.paraFinalizar.length)}${botao('clientes', '👩', 'Clientes', estado.horaDeVoltar.length)}${botao('tinturas', '🎨', 'Tinturas', baixas)}
   </nav>`;
 }
 
@@ -146,6 +159,7 @@ function cardHorario(a) {
     <div class="acoes">
       ${ativo ? `<a class="btn whatsapp" href="${linkWhatsApp(a.telefone, mensagemConfirmacao(a))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
       ${a.status === 'pendente' ? `<button class="btn primario" data-acao="confirmarHorario" data-id="${a.id}">Confirmar</button>` : ''}
+      ${ativo ? `<button class="btn" data-acao="abrirFinalizar" data-id="${a.id}">Finalizar</button>` : ''}
       <button class="btn" data-acao="abrirFicha" data-id="${a.cliente_id}">Ficha</button>
       ${ativo ? `<button class="btn" data-acao="abrirRemarcar" data-id="${a.id}">Remarcar</button>
                  <button class="btn perigo" data-acao="abrirCancelarHorario" data-id="${a.id}">Cancelar</button>` : ''}
@@ -161,9 +175,65 @@ function listaDoDia(iso, lista) {
     ${doDia.length ? doDia.map(cardHorario).join('') : '<p class="vazio">Nenhum horário.</p>'}`;
 }
 
+// RF-17: resumo do dia. A Lucy olha DE MANHÃ (antes de abrir) e NO ALMOÇO.
+// Por isso o resumo mostra quem AINDA VAI CHEGAR a partir de agora:
+// de manhã aparece o dia todo; no almoço, só a tarde.
+function resumoDoDia(hoje) {
+  const doDia = estado.agenda.filter(a => a.data === hoje);
+  if (!doDia.length) return '';
+  const agora = agoraLocal().slice(11);                         // "12:30"
+  const proximas = doDia.filter(a => a.hora >= agora && (a.status === 'pendente' || a.status === 'confirmado'));
+  const comAlergia = [];
+  proximas.forEach(a => { if (a.alergias && !comAlergia.some(c => c.cliente_id === a.cliente_id)) comAlergia.push(a); });
+
+  let alergias;
+  if (!proximas.length) alergias = `<div class="sucesso" style="margin-top:10px">✓ Não há mais clientes marcadas para hoje.</div>`;
+  else if (comAlergia.length) {
+    alergias = `<div class="alerta-alergia" role="alert" style="margin-top:10px;font-size:var(--texto-md)">⚠️ Atenção às alergias:<br>
+      ${comAlergia.map(a => `${esc(a.nome)} (${a.hora}): ${esc(a.alergias)}`).join('<br>')}</div>`;
+  } else alergias = `<div class="sucesso" style="margin-top:10px">✓ Nenhuma das próximas clientes tem alergia registrada.</div>`;
+
+  // Contagem por período (Manhã até 12h, Tarde até 18h, Noite depois)
+  const periodo = hora => hora < '12:00' ? 'Manhã' : hora < '18:00' ? 'Tarde' : 'Noite';
+  const porPeriodo = ['Manhã', 'Tarde', 'Noite']
+    .map(p => [p, doDia.filter(a => periodo(a.hora) === p).length])
+    .filter(([p, n]) => n > 0 || p !== 'Noite')
+    .map(([p, n]) => `${p}: ${n ? plural(n, 'cliente') : 'ninguém'}`)
+    .join(' · ');
+
+  return `<article class="card" style="border-color:var(--cor-marca)">
+    <div class="nome">Hoje</div>
+    <div>${porPeriodo}</div>
+    <div class="secundario">${proximas.length
+      ? `Próxima às ${proximas[0].hora}${proximas.length > 1 ? ` · última às ${proximas[proximas.length - 1].hora}` : ''}`
+      : 'Todos os horários de hoje já passaram.'}</div>
+    ${alergias}
+  </article>`;
+}
+
+// RF-16: atendimentos que já passaram e ainda não foram finalizados
+function secaoParaFinalizar() {
+  if (!estado.paraFinalizar.length) return '';
+  return `<h2 class="titulo-secao" style="color:var(--cor-atencao)">Para finalizar (${estado.paraFinalizar.length})</h2>
+    <p class="secundario" style="margin:-4px 0 12px">Atendimentos que já passaram. No fechamento do salão, use as anotações do papel para registrar os tubos usados.</p>
+    ${estado.paraFinalizar.map(a => `<article class="card" style="border-left:4px solid var(--cor-atencao)">
+      <div class="linha"><div>
+        <div class="nome">${esc(a.nome)}</div>
+        <div class="secundario">${rotuloDia(a.data)} às ${a.hora} · ${esc(a.servicos.map(s => s.nome).join(' + '))}</div>
+      </div></div>
+      ${seloAlergia(a.alergias)}
+      <div class="acoes">
+        <button class="btn primario" data-acao="abrirFinalizar" data-id="${a.id}">Finalizar</button>
+        <button class="btn" data-acao="abrirFicha" data-id="${a.cliente_id}">Ficha</button>
+        <button class="btn perigo" data-acao="abrirCancelarHorario" data-id="${a.id}">Não veio</button>
+      </div></article>`).join('')}`;
+}
+
 function telaAgenda() {
   const hoje = diaISO(0), amanha = diaISO(1);
-  return `<button class="btn primario bloco" data-acao="abrirNovoHorario">+ Novo horário</button>
+  return `${resumoDoDia(hoje)}
+    ${secaoParaFinalizar()}
+    <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo horário</button>
     <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
     <h2 class="titulo-secao">Amanhã · ${rotuloDia(amanha)}</h2>${listaDoDia(amanha, estado.agenda)}
     <h2 class="titulo-secao">Ver outro dia</h2>
@@ -175,12 +245,31 @@ function telaAgenda() {
 // ---------- Tela: Clientes (RF-08) ----------
 function telaClientes() {
   return `<button class="btn primario bloco" data-acao="abrirNovaCliente">+ Nova cliente</button>
-    <h2 class="titulo-secao">Hora de voltar</h2>
-    <p class="vazio">A lista de quem está na hora de voltar aparece depois que a agenda e os atendimentos estiverem prontos.</p>
+    <h2 class="titulo-secao">Hora de voltar (${estado.horaDeVoltar.length})</h2>
+    ${listaHoraDeVoltar()}
+    <button class="btn bloco" style="margin-top:4px" data-acao="abrirIntervalos">Ajustar intervalos de retorno</button>
     <h2 class="titulo-secao">Todas as clientes (${estado.clientes.length})</h2>
     <label class="rotulo" for="busca" style="margin-top:0">Buscar pelo nome</label>
     <input class="campo" type="search" id="busca" placeholder="Ex.: Ana" value="${esc(estado.busca)}" autocomplete="off">
     <div id="listaClientes" style="margin-top:12px">${listaClientes()}</div>`;
+}
+
+// RF-11 / RN-05: quem está perto ou passou da data de voltar
+function listaHoraDeVoltar() {
+  if (!estado.horaDeVoltar.length) return `<p class="vazio">Ninguém para chamar agora.</p>`;
+  return estado.horaDeVoltar.map(v => {
+    const prazo = v.faltam_dias < 0
+      ? `<strong style="color:var(--cor-perigo)">atrasada há ${plural(-v.faltam_dias, 'dia')}</strong>`
+      : v.faltam_dias === 0 ? '<strong>é hoje</strong>' : `em ${plural(v.faltam_dias, 'dia')}`;
+    return `<article class="card">
+      <div class="nome">${esc(v.nome)}</div>
+      <div class="secundario">${esc(v.servico)} · ${prazo} · último em ${dataBR(v.ultima)}</div>
+      <div class="acoes">
+        <a class="btn whatsapp" href="${linkWhatsApp(v.telefone, mensagemRetorno(v))}" target="_blank" rel="noopener">Lembrar pelo WhatsApp</a>
+        <button class="btn" data-acao="abrirFicha" data-id="${v.cliente_id}">Ficha</button>
+      </div>
+    </article>`;
+  }).join('');
 }
 
 function listaClientes() {
@@ -360,11 +449,38 @@ function conteudoJanela() {
     case 'cancelarHorario': {
       const a = horarioPorId(j.id);
       return `<h2>Cancelar horário?</h2>
+        <p class="secundario">Use também quando a cliente não veio.</p>
         <p><strong>${esc(a.nome)}</strong> · ${rotuloDia(a.data)} às ${a.hora}</p>
         <p class="secundario">O horário fica livre para outra cliente.</p>${erro}
         <div class="acoes"><button class="btn perigo" data-acao="confirmarCancelarHorario">Sim, cancelar</button>
         <button class="btn" data-acao="fecharJanela">Não</button></div>`;
     }
+    case 'finalizar': {
+      const a = horarioPorId(j.id);
+      const linhas = estado.tinturas.length
+        ? estado.tinturas.map(t => `
+          <div class="linha" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--cor-linha)">
+            <div><strong>${esc(t.codigo)}</strong> <span class="secundario">${esc(t.marca)} · estoque: ${t.quantidade_tubos}</span></div>
+            <div class="contador">
+              <button class="btn" aria-label="Menos um tubo de ${esc(t.codigo)}" data-acao="mudarTubo" data-id="${t.id}" data-passo="-1">−</button>
+              <output aria-live="polite">${j.tubos[t.id] || 0}</output>
+              <button class="btn" aria-label="Mais um tubo de ${esc(t.codigo)}" data-acao="mudarTubo" data-id="${t.id}" data-passo="1">+</button>
+            </div>
+          </div>`).join('')
+        : '<p class="secundario">Nenhuma tintura cadastrada.</p>';
+      return `<h2>Finalizar atendimento</h2>
+        ${a.alergias ? `<div class="alerta-alergia" role="alert" style="margin-bottom:12px">⚠️ Alergia: ${esc(a.alergias)}</div>` : ''}
+        <p><strong>${esc(a.nome)}</strong> · ${esc(a.servicos.map(s => s.nome).join(' + '))}</p>
+        <p class="secundario">Quantos tubos de cada tintura foram usados? Deixe 0 se não usou.</p>
+        ${linhas}${erro}${botoesJanela('concluirAtendimento', 'Concluir atendimento')}`;
+    }
+    case 'intervalos':
+      return `<h2>Intervalos de retorno</h2>
+        <p class="secundario">Depois de quantos dias cada serviço costuma ser refeito? A cliente aparece em "Hora de voltar" 7 dias antes.</p>
+        ${estado.servicos.map(sv => `
+          <label class="rotulo" for="int${sv.id}">${esc(sv.nome)} (dias)</label>
+          <input class="campo" type="number" min="1" max="365" step="1" inputmode="numeric" id="int${sv.id}" value="${sv.intervalo_retorno_dias}">`).join('')}
+        ${erro}${botoesJanela('salvarIntervalos', 'Salvar intervalos')}`;
     case 'novaCliente':
       return `<h2>Nova cliente</h2>${formularioCliente()}${erro}${botoesJanela('salvarNovaCliente', 'Salvar cliente')}`;
     case 'editarCliente':
@@ -441,9 +557,11 @@ const ordemCliente = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR');
 async function carregarTudo() {
   estado.carregando = true; estado.erroCarregar = ''; desenhar();
   try {
-    [estado.tinturas, estado.clientes, estado.servicos, estado.agenda] = await Promise.all([
+    [estado.tinturas, estado.clientes, estado.servicos, estado.agenda, estado.horaDeVoltar, estado.paraFinalizar] = await Promise.all([
       api('/tinturas'), api('/clientes'), api('/servicos'),
-      api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`)
+      api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`),
+      api(`/hora-de-voltar?hoje=${diaISO(0)}`),
+      api(`/agenda/para-finalizar?agora=${encodeURIComponent(agoraLocal())}`)
     ]);
   } catch (e) {
     estado.erroCarregar = e.message;
@@ -451,13 +569,16 @@ async function carregarTudo() {
   estado.carregando = false; desenhar();
 }
 
-// Recarrega a agenda (hoje, amanhã e o outro dia escolhido)
+// Recarrega a agenda (hoje, amanhã e o outro dia escolhido) e a "Hora de voltar",
+// que depende dos horários marcados e dos atendimentos finalizados
 async function recarregarAgenda() {
   estado.agenda = await api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`);
+  estado.horaDeVoltar = await api(`/hora-de-voltar?hoje=${diaISO(0)}`);
+  estado.paraFinalizar = await api(`/agenda/para-finalizar?agora=${encodeURIComponent(agoraLocal())}`);
   if (estado.diaExtra) estado.agendaExtra = await api(`/agenda?de=${estado.diaExtra}&ate=${estado.diaExtra}`);
 }
 
-const horarioPorId = id => [...estado.agenda, ...estado.agendaExtra].find(a => a.id === Number(id));
+const horarioPorId = id => [...estado.agenda, ...estado.agendaExtra, ...estado.paraFinalizar].find(a => a.id === Number(id));
 
 function dadosHorario() {
   return { data: valorDe('hData'), hora: valorDe('hHora'), duracao_min: valorDe('hDur') };
@@ -557,6 +678,49 @@ const acoes = {
       await recarregarAgenda();
       estado.janela = null; desenhar();
       avisar(`Remarcado para ${rotuloDia(a.data)} às ${a.hora}. Confirme de novo com a cliente.`);
+    });
+  },
+
+  // --- Finalizar atendimento (RF-10) ---
+  abrirFinalizar(id) { estado.janela = { tipo: 'finalizar', id: Number(id), tubos: {} }; desenharJanela(); },
+  mudarTubo(id, botao) {
+    const tubos = estado.janela.tubos;
+    tubos[id] = Math.max(0, (tubos[id] || 0) + Number(botao.dataset.passo));
+    estado.janela.erro = '';
+    desenharJanela(true);
+  },
+  concluirAtendimento(_, botao) {
+    return salvando(botao, async () => {
+      const tinturas = Object.entries(estado.janela.tubos)
+        .filter(([, q]) => q > 0)
+        .map(([id, q]) => ({ tintura_id: Number(id), quantidade: q }));
+      const { agendamento, tinturas: estoque } = await api(`/agenda/${estado.janela.id}/finalizar`, {
+        metodo: 'POST', corpo: { tinturas }
+      });
+      estado.tinturas = estoque;                // estoque já baixado (RF-10)
+      await recarregarAgenda();
+      estado.janela = null; desenhar();
+      const baixas = tinturas.map(u => estoque.find(t => t.id === u.tintura_id))
+        .filter(t => t && t.estoque_baixo).map(t => t.codigo);
+      avisar(`Atendimento de ${agendamento.nome} finalizado. Histórico e estoque atualizados.` +
+        (baixas.length ? ` ⚠️ Estoque baixo: ${baixas.join(', ')}` : ''));
+    });
+  },
+
+  // --- Intervalos de retorno (RF-12) ---
+  abrirIntervalos() { estado.janela = { tipo: 'intervalos' }; desenharJanela(); },
+  salvarIntervalos(_, botao) {
+    return salvando(botao, async () => {
+      for (const sv of estado.servicos) {
+        const dias = valorDe(`int${sv.id}`);
+        if (Number(dias) !== sv.intervalo_retorno_dias) {
+          const novo = await api(`/servicos/${sv.id}`, { metodo: 'PUT', corpo: { intervalo_retorno_dias: dias } });
+          sv.intervalo_retorno_dias = novo.intervalo_retorno_dias;
+        }
+      }
+      await recarregarAgenda();
+      estado.janela = null; desenhar();
+      avisar('Intervalos de retorno salvos.');
     });
   },
 

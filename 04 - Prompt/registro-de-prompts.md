@@ -102,6 +102,27 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Minha execução:** [resultado dos testes T-16 a T-24]
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 05 — Parte 5: finalizar atendimento e hora de voltar (RF-10, RF-11, RF-12)
+
+- **Data:** 23/11/2026
+- **Prompt usado (modelo do roteiro):**
+  > Atue como desenvolvedor full-stack sênior. Implemente APENAS o RF-10 (finalizar atendimento: histórico + baixa de tinturas), o RF-11 (hora de voltar com lembrete pelo WhatsApp) e o RF-12 (intervalo de retorno editável), com as regras RN-03, RN-04 e RN-05 e os critérios HU-05 e HU-06. Primeiro liste arquivos e alterações; depois gere código com validação e tratamento de erro. Explique como comprovar cada critério.
+- **O que a IA entregou:** rotas `/api/agenda/:id/finalizar`, `/api/hora-de-voltar` e `PUT /api/servicos/:id` no `server.js`; botão Finalizar, janela de tubos, lista "Hora de voltar" e janela de intervalos no `app.js`.
+- **Verificação feita pela IA:**
+  - No PostgreSQL 16: finalizar com baixa de estoque; estoque insuficiente **desfaz tudo** (sem histórico, horário continua ativo); cálculo da data prevista; quem já tem horário futuro sai da lista.
+  - No navegador automático: alergia no topo da janela de finalizar, recusa por estoque insuficiente, aviso de estoque baixo, mensagem de lembrete sem emoji, salvar intervalos.
+- **Decisões:**
+  - Finalizar é **uma única transação** com 4 passos (histórico, serviços, baixa de cada tintura, status). Se faltar tubo de qualquer tintura, nada é gravado.
+  - A baixa só acontece se houver tubo suficiente (`quantidade_tubos >= X`), conferido pelo banco no momento da baixa.
+  - **RN-03 (pendência):** a Lucy disse que "sempre executa o serviço". Por enquanto o sistema **bloqueia** quando falta tubo e pede para atualizar o estoque. Confirmar com ela se prefere ser só avisada.
+  - A janela de finalizar repete o **aviso de alergia**, porque é o momento em que a tintura é aplicada.
+  - A "Hora de voltar" usa a data **do aparelho** (fuso da Lucy), não a do servidor.
+  - Quem já tem horário marcado **não aparece** na "Hora de voltar", porque já vai voltar.
+- **Mudança de rumo vinda da Lucy (23/11/2026):** eu disse que a Lucy não mexe no celular enquanto trabalha. A IA apontou que isso derrubava a hipótese H1 e sugeriu 3 perguntas para ela. Respostas: usa o **celular de manhã e no almoço para ver o dia** (quem vem e quem tem alergia) e **no fechamento passa os tubos que anotou no papel**. (A IA entendeu errado no primeiro momento, achando que ela finalizaria no almoço; eu corrigi.) A IA criou o **resumo do dia** (RF-17, mostrando só as **próximas** clientes e as alergias delas, para servir de manhã e no almoço) e a lista **"Para finalizar"** (RF-16, de qualquer dia, com o botão "Não veio"). A especificação foi para a v0.4.
+- **Ajuste de texto pedido por mim:** o resumo dizia "Hoje: 1 horário" e eu entendi "primeiro horário". Sugeri dividir por período. Agora mostra **"Manhã: N clientes · Tarde: N clientes"** (Noite só aparece se houver alguém depois das 18h). Testado pela IA com o relógio simulado às 08:00, 12:30 e 15:11.
+- **Minha execução:** [resultado dos testes T-25 a T-35]
+- **Minha revisão:** [o que entendi ou mudei]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026

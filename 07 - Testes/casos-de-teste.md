@@ -63,11 +63,31 @@
 | T-23 | RF-02 (duração opcional), RN-01 | Ana hoje 14:00 com 1h | Novo horário para outra cliente hoje às 16:00 com duração "Não informar" → depois outro às 16:00 também sem duração | O primeiro é aceito e o cartão mostra só "16:00"; o segundo recebe "Já existe cliente nesse horário: … às 16:00." | — | ⏳ | |
 | T-22 | RF-03 (outro dia) | Horário marcado para daqui a 5 dias | Ver outro dia → escolher a data | O horário aparece na lista daquele dia | — | ⏳ | |
 
-## Finalizar atendimento (RF-10)
-*A preencher.*
+## Finalizar atendimento (RF-10, RN-03, RN-04)
 
-## Hora de voltar (RF-11, RF-12)
-*A preencher.*
+| ID | Requisito / critério | Pré-condição | Passos | Resultado esperado | Data | Situação | Evidência |
+|---|---|---|---|---|---|---|---|
+| T-25 | RF-10, CA-05.1 | Ana hoje (Tintura); 7.0 com 3 tubos, mínimo 1 | Agenda → Finalizar → 7.0 = 1 tubo → Concluir | 7.0 vai para **2**; o horário fica **Concluído**; a ficha da Ana mostra o atendimento com "7.0 (1 tubo)" | 23/11/2026 | ✅ parcial (horário Concluído; conferir estoque e histórico) | print |
+| T-26 | RN-04, CA-05.2 | 7.0 com 2 tubos, mínimo 1 | Finalizar outro atendimento com 1 tubo de 7.0 | 7.0 vai para **1** e aparece o aviso "⚠️ Estoque baixo: 7.0" | — | ⏳ | |
+| T-27 | RN-03, CA-05.3 | Uma tintura com 0 tubos | Finalizar com 1 tubo dela | Mensagem "Estoque insuficiente de … — atualize o estoque." e **nada** é gravado (o horário continua ativo, sem histórico novo) | — | ⏳ | |
+| T-28 | Segurança (alergia) | Cliente com alergia | Abrir "Finalizar" | O aviso vermelho da alergia aparece no topo da janela | — | ⏳ | |
+
+## Uso fora do horário de atendimento (RF-16, RF-17)
+
+| ID | Requisito / critério | Pré-condição | Passos | Resultado esperado | Data | Situação | Evidência |
+|---|---|---|---|---|---|---|---|
+| T-33 | RF-17 | Clientes marcadas hoje de manhã e à tarde, uma da tarde com alergia | Abrir a Agenda antes do primeiro horário e depois de novo no meio do dia | No topo: "Hoje · Manhã: N clientes · Tarde: N clientes". De manhã: próxima cliente e todas as alergias do dia. No meio do dia: só as próximas clientes e as alergias delas | — | ⏳ | |
+| T-34 | RF-16 | Um horário de hoje que já passou e outro de um dia anterior, não finalizados | Abrir a Agenda | Aparecem em "Para finalizar" (com a contagem na aba Agenda) e é possível finalizar os dois | — | ⏳ | |
+| T-35 | RF-16 ("Não veio") | Um horário em "Para finalizar" | Tocar em "Não veio" → Sim, cancelar | O horário sai da lista "Para finalizar" | — | ⏳ | |
+
+## Hora de voltar (RF-11, RF-12, RN-05)
+
+| ID | Requisito / critério | Pré-condição | Passos | Resultado esperado | Data | Situação | Evidência |
+|---|---|---|---|---|---|---|---|
+| T-29 | RF-11, RN-05, CA-06.1 | Intervalo da Tintura = 1 dia (ajustado para o teste) | Finalizar uma tintura hoje → aba Clientes | A cliente aparece em "Hora de voltar" com "em 1 dia" e a contagem na aba Clientes | — | ⏳ | |
+| T-30 | RF-11 (lembrete) | Cliente na lista | Tocar em "Lembrar pelo WhatsApp" | Abre o WhatsApp com "Olá, …! Aqui é a Lucy. Já está chegando a hora de renovar: tintura. Quer marcar um horário?" | — | ⏳ | |
+| T-31 | RN-05 (quem já marcou) | Cliente na lista | Marcar um horário futuro para ela | Ela sai da lista "Hora de voltar" | — | ⏳ | |
+| T-32 | RF-12 | — | Ajustar intervalos de retorno → mudar Tintura → Salvar → reabrir | O novo valor fica salvo | — | ⏳ | |
 
 ## Acesso (RF-01)
 *A preencher.*
@@ -78,9 +98,9 @@
 
 | | Quantidade |
 |---|---|
-| Testes propostos | 24 |
+| Testes propostos | 35 |
 | Executados | 12 |
 | Aprovados | 12 |
 | Reprovados | 0 (T-18 reprovou 2x e passou após correções) |
-| Não executados | 12 |
+| Não executados | 23 |
 | Defeitos encontrados / corrigidos | 6 / 6 |

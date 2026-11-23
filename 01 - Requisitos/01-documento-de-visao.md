@@ -69,7 +69,7 @@ Ajudar a Lucy a **confirmar e organizar seus horários**, **lembrar as clientes 
 
 ## 8. Hipóteses a validar
 
-- H1: a Lucy vai usar o sistema pelo **celular** durante o dia. *(ainda não perguntado)*
+- H1: ~~a Lucy vai usar o sistema pelo celular durante o dia.~~ **Respondida em 23/11/2026 — parcialmente FALSA:** ela usa o **celular**, mas **não durante os atendimentos**. Usa **de manhã, antes de abrir, e no almoço** para ver o dia (quem vem e quem tem alergia), e **no fechamento** passa para o sistema os tubos que anotou no **papel**. Isso gerou os RF-16 e RF-17 (especificação v0.4).
 - H2: o botão que abre o WhatsApp com a mensagem pronta é suficiente, sem precisar de envio automático.
 - H3: ~~as clientes aceitam ter seus dados de saúde (alergias) guardados digitalmente, com consentimento.~~ **Revisada em 23/11/2026:** a alergia é guardada com base na proteção da incolumidade física da cliente (LGPD, art. 11, II, "e"), sem caixinha de consentimento. Ver a seção 7 da especificação de requisitos.
 

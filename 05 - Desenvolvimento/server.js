@@ -351,6 +351,25 @@ app.get('/api/agenda', async (req, res) => {
   res.json(rows);
 });
 
+// "Para finalizar" (RF-16): horários que já começaram e ainda não foram
+// finalizados nem cancelados, de qualquer dia. A Lucy anota no papel durante
+// o expediente e registra depois, no fechamento do salão.
+// "agora" vem da tela, no fuso do aparelho: "2026-11-23 12:30".
+app.get('/api/agenda/para-finalizar', async (req, res) => {
+  const agora = texto(req.query.agora);
+  if (!/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d$/.test(agora)) {
+    return res.status(400).json({ erro: 'Data e hora inválidas.' });
+  }
+  const { rows } = await banco.query(
+    `${CONSULTA_AGENDA}
+      WHERE a.status IN ('pendente', 'confirmado') AND a.inicio <= $1::timestamp
+      ORDER BY a.inicio
+      LIMIT 200`,
+    [agora]
+  );
+  res.json(rows);
+});
+
 // Marcar um horário novo (RF-02). Status inicial: pendente.
 app.post('/api/agenda', async (req, res) => {
   const corpo = req.body ?? {};
@@ -433,6 +452,131 @@ app.put('/api/agenda/:id', async (req, res) => {
   res.json(resultado.agendamento);
 });
 
+// =========================================================
+// FINALIZAR ATENDIMENTO — RF-10 (histórico + baixa de estoque),
+//                         RN-03 (estoque nunca negativo), RN-04 (alerta)
+// =========================================================
+
+// Erro com mensagem para a Lucy. Ao ser lançado dentro de uma transação,
+// desfaz TUDO (ROLLBACK) e a mensagem chega na tela.
+class ErroAmigavel extends Error {
+  constructor(mensagem, status = 409) { super(mensagem); this.status = status; }
+}
+
+app.post('/api/agenda/:id/finalizar', async (req, res) => {
+  const id = inteiro(req.params.id, 1);
+  if (!id) return res.status(404).json({ erro: 'Horário não encontrado.' });
+
+  // Tubos usados: [{ tintura_id, quantidade }] — só os que têm quantidade > 0
+  const lista = Array.isArray(req.body?.tinturas) ? req.body.tinturas : [];
+  const usadas = [];
+  for (const item of lista) {
+    const tinturaId = inteiro(item?.tintura_id, 1), quantidade = inteiro(item?.quantidade, 0);
+    if (!tinturaId || quantidade === null) return res.status(400).json({ erro: 'Quantidade de tubos inválida.' });
+    if (quantidade > 0) usadas.push({ tinturaId, quantidade });
+  }
+
+  const resultado = await transacao(async conexao => {
+    // 1. Trava o horário enquanto finaliza (evita finalizar duas vezes ao mesmo tempo)
+    const { rows: [horario] } = await conexao.query(
+      `SELECT id, cliente_id, to_char(inicio, 'YYYY-MM-DD') AS data, status
+         FROM agendamentos WHERE id = $1 FOR UPDATE`, [id]
+    );
+    if (!horario) throw new ErroAmigavel('Horário não encontrado.', 404);
+    if (!['pendente', 'confirmado'].includes(horario.status)) {
+      throw new ErroAmigavel('Esse horário já foi finalizado ou cancelado.');
+    }
+
+    // 2. Cria o atendimento no histórico da cliente, com os serviços do horário
+    const { rows: [atendimento] } = await conexao.query(
+      `INSERT INTO atendimentos (cliente_id, agendamento_id, data) VALUES ($1, $2, $3::date) RETURNING id`,
+      [horario.cliente_id, id, horario.data]
+    );
+    await conexao.query(
+      `INSERT INTO atendimento_servicos (atendimento_id, servico_id)
+       SELECT $1, servico_id FROM agendamento_servicos WHERE agendamento_id = $2`,
+      [atendimento.id, id]
+    );
+
+    // 3. Baixa o estoque de cada tintura. "quantidade_tubos >= $1" garante que
+    //    só baixa se tiver tubo suficiente (RN-03); se não tiver, desfaz tudo.
+    for (const { tinturaId, quantidade } of usadas) {
+      const baixa = await conexao.query(
+        `UPDATE tinturas SET quantidade_tubos = quantidade_tubos - $1
+          WHERE id = $2 AND quantidade_tubos >= $1 RETURNING id`,
+        [quantidade, tinturaId]
+      );
+      if (!baixa.rowCount) {
+        const { rows: [t] } = await conexao.query('SELECT codigo FROM tinturas WHERE id = $1', [tinturaId]);
+        throw new ErroAmigavel(t
+          ? `Estoque insuficiente de ${t.codigo} — atualize o estoque.`
+          : 'Tintura não encontrada. Recarregue a página.');
+      }
+      await conexao.query(
+        `INSERT INTO atendimento_tinturas (atendimento_id, tintura_id, quantidade_tubos) VALUES ($1, $2, $3)`,
+        [atendimento.id, tinturaId, quantidade]
+      );
+    }
+
+    // 4. Marca o horário como concluído
+    await conexao.query(`UPDATE agendamentos SET status = 'concluido' WHERE id = $1`, [id]);
+
+    // Devolve o horário atualizado e o estoque novo (para a tela atualizar o alerta)
+    const { rows: tinturas } = await conexao.query(
+      `SELECT ${COLUNAS_TINTURA} FROM tinturas ORDER BY codigo, marca`
+    );
+    return { agendamento: await buscarAgendamento(id, conexao), tinturas };
+  });
+
+  res.json(resultado);
+});
+
+// =========================================================
+// HORA DE VOLTAR — RF-11, RN-05
+// Data prevista = último atendimento daquele serviço + intervalo do serviço.
+// Aparece 7 dias antes da data prevista ou depois dela.
+// Quem já tem horário marcado para hoje ou depois NÃO aparece (já vai voltar).
+// =========================================================
+app.get('/api/hora-de-voltar', async (req, res) => {
+  const hoje = texto(req.query.hoje);             // a data vem da tela (fuso horário do aparelho)
+  if (!FORMATO_DATA.test(hoje)) return res.status(400).json({ erro: 'Data inválida.' });
+
+  const { rows } = await banco.query(
+    `SELECT c.id AS cliente_id, c.nome, c.telefone, c.alergias,
+            s.id AS servico_id, s.nome AS servico,
+            to_char(max(a.data), 'YYYY-MM-DD') AS ultima,
+            to_char(max(a.data) + s.intervalo_retorno_dias, 'YYYY-MM-DD') AS prevista,
+            (max(a.data) + s.intervalo_retorno_dias) - $1::date AS faltam_dias
+       FROM atendimentos a
+       JOIN atendimento_servicos x ON x.atendimento_id = a.id
+       JOIN servicos s ON s.id = x.servico_id
+       JOIN clientes c ON c.id = a.cliente_id
+      WHERE NOT EXISTS (SELECT 1 FROM agendamentos g
+                         WHERE g.cliente_id = c.id
+                           AND g.status IN ('pendente', 'confirmado')
+                           AND g.inicio >= $1::date)
+      GROUP BY c.id, s.id
+     HAVING max(a.data) + s.intervalo_retorno_dias <= $1::date + 7
+      ORDER BY faltam_dias, c.nome`,
+    [hoje]
+  );
+  res.json(rows);
+});
+
+// Ajustar o intervalo de retorno de um serviço (RF-12)
+app.put('/api/servicos/:id', async (req, res) => {
+  const id = inteiro(req.params.id, 1);
+  const dias = inteiro(req.body?.intervalo_retorno_dias, 1);
+  if (!id) return res.status(404).json({ erro: 'Serviço não encontrado.' });
+  if (!dias || dias > 365) return res.status(400).json({ erro: 'O intervalo precisa ser de 1 a 365 dias.' });
+  const { rows } = await banco.query(
+    `UPDATE servicos SET intervalo_retorno_dias = $1 WHERE id = $2
+     RETURNING id, nome, intervalo_retorno_dias`, [dias, id]
+  );
+  if (!rows.length) return res.status(404).json({ erro: 'Serviço não encontrado.' });
+  res.json(rows[0]);
+});
+
 // ---------------------------------------------------------
 // Rotas da API que não existem → 404 em JSON
 // ---------------------------------------------------------
@@ -455,6 +599,9 @@ const MENSAGENS_DO_BANCO = {
 };
 
 app.use((erro, req, res, next) => {
+  if (erro instanceof ErroAmigavel) {
+    return res.status(erro.status).json({ erro: erro.message });
+  }
   if (erro.type === 'entity.parse.failed') {
     return res.status(400).json({ erro: 'Dados enviados em formato inválido.' });
   }
