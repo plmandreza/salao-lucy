@@ -89,8 +89,16 @@
 | T-31 | RN-05 (quem já marcou) | Cliente na lista | Marcar um horário futuro para ela | Ela sai da lista "Hora de voltar" | — | ⏳ | |
 | T-32 | RF-12 | — | Ajustar intervalos de retorno → mudar Tintura → Salvar → reabrir | O novo valor fica salvo | — | ⏳ | |
 
-## Acesso (RF-01)
-*A preencher.*
+## Acesso (RF-01, RNF-04)
+
+| ID | Requisito / critério | Pré-condição | Passos | Resultado esperado | Data | Situação | Evidência |
+|---|---|---|---|---|---|---|---|
+| T-36 | RF-01, CA-08.1 | Sem login | Abrir http://localhost:3000 | Aparece a tela de login; agenda, fichas e abas não aparecem | 23/11/2026 | ✅ | evidencias/T-36-*.png |
+| T-37 | CA-08.2 | Usuária criada | E-mail certo e senha errada → Entrar | "E-mail ou senha incorretos." e não entra | 23/11/2026 | ✅ | evidencias/T-37-*.png |
+| T-38 | RF-01 | Usuária criada | E-mail e senha certos → Entrar → fechar e reabrir o navegador | Entra na agenda; ao reabrir, continua logada (sessão de 30 dias) | 23/11/2026 | ✅ (entrou; continuar logada ao reabrir o navegador ainda não foi testado) | evidencias/T-38-*.png |
+| T-39 | RF-01 (sair) | Logada | Tocar em "Sair" → tentar abrir http://localhost:3000/api/clientes | Volta ao login; o endereço da API responde "Faça login para continuar." | — | ⏳ | |
+| T-40 | RNF-04 (tentativas) | — | Errar a senha 5 vezes → tentar a 6ª | "Muitas tentativas erradas. Espere 15 minutos…" | — | ⏳ | |
+| T-41 | RNF-04 (hash) | Usuária criada | No terminal: `docker compose exec db psql -U lucy -d salao -c "SELECT email, senha_hash FROM usuarios"` | A senha aparece embaralhada (`scrypt$…`), nunca como foi digitada | — | ⏳ | |
 
 ---
 
@@ -98,9 +106,9 @@
 
 | | Quantidade |
 |---|---|
-| Testes propostos | 35 |
-| Executados | 15 |
-| Aprovados | 15 |
+| Testes propostos | 41 |
+| Executados | 18 |
+| Aprovados | 18 |
 | Reprovados | 0 (T-18 reprovou 2x e passou após correções) |
-| Não executados | 20 |
+| Não executados | 23 |
 | Defeitos encontrados / corrigidos | 6 / 6 |

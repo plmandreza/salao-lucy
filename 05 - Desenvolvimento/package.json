@@ -7,7 +7,8 @@
   "type": "commonjs",
   "scripts": {
     "dev": "node --env-file=.env --watch server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "criar-usuario": "node --env-file=.env scripts/criar-usuario.js"
   },
   "engines": {
     "node": ">=20.6"

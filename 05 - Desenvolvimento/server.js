@@ -7,6 +7,7 @@
 const path = require('node:path');
 const express = require('express');
 const { Pool } = require('pg');
+const seguranca = require('./seguranca');
 
 // Conexão com o banco. A biblioteca "pg" lê sozinha as variáveis
 // PGHOST, PGPORT, PGUSER, PGPASSWORD e PGDATABASE do arquivo .env
@@ -35,6 +36,77 @@ app.get('/api/saude', async (req, res) => {
     });
   }
 });
+
+// =========================================================
+// LOGIN — RF-01, RNF-04
+// =========================================================
+const NOME_COOKIE = 'sessao';
+const DURACAO_SESSAO_DIAS = 30;
+
+// O cookie só viaja por HTTPS quando COOKIE_SEGURO=true (no servidor publicado).
+// No computador (http://localhost) fica false, senão o login não funcionaria.
+function cookieSessao(valor, maxIdadeSeg) {
+  const partes = [`${NOME_COOKIE}=${encodeURIComponent(valor)}`, 'Path=/', 'HttpOnly', 'SameSite=Lax',
+                  `Max-Age=${maxIdadeSeg}`];
+  if (process.env.COOKIE_SEGURO === 'true') partes.push('Secure');
+  return partes.join('; ');
+}
+
+// Entrar
+app.post('/api/login', async (req, res) => {
+  const ip = req.ip;
+  if (seguranca.bloqueado(ip)) {
+    return res.status(429).json({ erro: 'Muitas tentativas erradas. Espere 15 minutos e tente de novo.' });
+  }
+  const email = String(req.body?.email ?? '').trim().toLowerCase();
+  const senha = String(req.body?.senha ?? '');
+
+  const { rows: [usuario] } = await banco.query(
+    'SELECT id, senha_hash FROM usuarios WHERE email = $1', [email]
+  );
+  // A mesma mensagem para e-mail OU senha errados: não revela qual dos dois errou (CA-08.2)
+  if (!usuario || !seguranca.conferirSenha(senha, usuario.senha_hash)) {
+    seguranca.registrarErro(ip);
+    return res.status(401).json({ erro: 'E-mail ou senha incorretos.' });
+  }
+
+  seguranca.limparErros(ip);
+  const token = seguranca.novoToken();
+  await banco.query(
+    `INSERT INTO sessoes (token_hash, usuario_id, expira_em)
+     VALUES ($1, $2, now() + make_interval(days => $3))`,
+    [seguranca.hashToken(token), usuario.id, DURACAO_SESSAO_DIAS]
+  );
+  await banco.query('DELETE FROM sessoes WHERE expira_em < now()');   // faxina das sessões vencidas
+  res.setHeader('Set-Cookie', cookieSessao(token, DURACAO_SESSAO_DIAS * 24 * 60 * 60));
+  res.json({ email });
+});
+
+// Sair
+app.post('/api/sair', async (req, res) => {
+  const token = seguranca.lerCookie(req, NOME_COOKIE);
+  if (token) await banco.query('DELETE FROM sessoes WHERE token_hash = $1', [seguranca.hashToken(token)]);
+  res.setHeader('Set-Cookie', cookieSessao('', 0));
+  res.json({ ok: true });
+});
+
+// PORTEIRO: daqui para baixo, toda rota /api exige login (RNF-04, CA-08.1).
+// Ficam liberadas só as de cima: /api/saude, /api/login e /api/sair.
+app.use('/api', async (req, res, next) => {
+  const token = seguranca.lerCookie(req, NOME_COOKIE);
+  if (token) {
+    const { rows: [sessao] } = await banco.query(
+      `SELECT u.id, u.email FROM sessoes s JOIN usuarios u ON u.id = s.usuario_id
+        WHERE s.token_hash = $1 AND s.expira_em > now()`,
+      [seguranca.hashToken(token)]
+    );
+    if (sessao) { req.usuario = sessao; return next(); }
+  }
+  res.status(401).json({ erro: 'Faça login para continuar.' });
+});
+
+// Quem está logado (a tela usa para saber se mostra o login ou o sistema)
+app.get('/api/eu', (req, res) => res.json({ email: req.usuario.email }));
 
 // ---------------------------------------------------------
 // Ajudantes de validação: nunca confie no que chega da tela

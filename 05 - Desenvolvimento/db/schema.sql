@@ -13,6 +13,13 @@ CREATE TABLE IF NOT EXISTS usuarios (
   criado_em   TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Sessões de login: guarda só o hash do "crachá" de cada login — RF-01
+CREATE TABLE IF NOT EXISTS sessoes (
+  token_hash  TEXT PRIMARY KEY,
+  usuario_id  INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+  expira_em   TIMESTAMPTZ NOT NULL
+);
+
 -- Serviços do salão e o intervalo de retorno — RF-12
 CREATE TABLE IF NOT EXISTS servicos (
   id                     SERIAL PRIMARY KEY,

@@ -123,6 +123,23 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Minha execução:** [resultado dos testes T-25 a T-35]
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 05 — Parte 6: login (RF-01, RNF-04)
+
+- **Data:** 23/11/2026
+- **Prompt usado (modelo do roteiro):**
+  > Atue como desenvolvedor full-stack sênior. Implemente APENAS o RF-01 (login e logout da Lucy) atendendo ao RNF-04 (todas as rotas exigem login; senha com hash) e aos critérios CA-08.1 e CA-08.2. Sem bibliotecas novas. Primeiro liste arquivos e alterações; depois gere o código com tratamento de erro e explique como comprovar.
+- **O que a IA entregou:** `seguranca.js` (hash de senha com scrypt, tokens, leitura de cookie, limite de tentativas), `scripts/criar-usuario.js` (`npm run criar-usuario`), rotas `/api/login`, `/api/sair`, `/api/eu` e o "porteiro" que protege todas as outras rotas, a migração `003-sessoes-login.sql` e a tela de login no `app.js`.
+- **Verificação feita pela IA:** funções de segurança testadas no Node (senha certa/errada, dois hashes diferentes para a mesma senha, bloqueio após 5 erros); consultas de usuário e sessão testadas no PostgreSQL (criar, trocar senha encerra sessões, sessão vencida recusada); telas testadas no navegador automático (login, senha errada, sessão vencida no meio do uso volta ao login, sair, bloqueio).
+- **Decisões:**
+  - **Nenhuma biblioteca nova:** tudo com o módulo `crypto`, que já vem no Node.js.
+  - A senha é guardada como **hash scrypt com sal**; o "crachá" da sessão é guardado só como **hash SHA-256**. Se o banco vazar, nem senhas nem crachás servem.
+  - Cookie **HttpOnly** (o JavaScript da página não lê) e **SameSite=Lax**; **Secure** só no servidor publicado (`COOKIE_SEGURO=true`).
+  - A mesma mensagem para e-mail OU senha errados, para não revelar qual dos dois existe.
+  - Não existe tela de cadastro de usuária: o acesso é criado pelo terminal (`npm run criar-usuario`), porque o sistema tem uma única usuária.
+  - `/api/saude` continua aberta, porque o Docker vai usá-la para saber se o sistema está de pé (Etapa 06).
+- **Minha execução:** [resultado dos testes T-36 a T-41]
+- **Minha revisão:** [o que entendi ou mudei]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026

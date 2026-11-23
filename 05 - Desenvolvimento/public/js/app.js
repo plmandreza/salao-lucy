@@ -88,12 +88,18 @@ async function api(caminho, { metodo = 'GET', corpo } = {}) {
     throw new Error('Sem conexão com o servidor. Ele está ligado?');
   }
   const dados = await resposta.json().catch(() => ({}));
+  // 401 = não está logada (ou a sessão venceu): volta para a tela de login (CA-08.1)
+  if (resposta.status === 401 && caminho !== '/login') {
+    estado.logado = false; estado.janela = null; desenhar();
+    throw new Error('Faça login para continuar.');
+  }
   if (!resposta.ok) throw new Error(dados.erro || 'Algo deu errado. Tente de novo.');
   return dados;
 }
 
 // ---------- Estado da tela ----------
 const estado = {
+  logado: null,         // null = verificando · false = mostra o login · true = mostra o sistema
   aba: 'agenda',        // aba escolhida no menu de baixo (agenda = prioridade nº 1)
   tela: null,           // tela "por cima" da aba: 'ficha' ou null
   carregando: true,
@@ -121,7 +127,25 @@ function avisar(mensagem) {
 
 // ---------- Partes fixas ----------
 function topo() {
-  return `<header class="topo"><div><h1>Lucy Cabeleireira</h1><small>${hojeTexto()}</small></div></header>`;
+  return `<header class="topo"><div><h1>Lucy Cabeleireira</h1><small>${hojeTexto()}</small></div>
+    <button class="btn" style="background:none;color:#fff;border-color:#ffffffa0" data-acao="sair">Sair</button></header>`;
+}
+
+// ---------- Tela: Login (RF-01) ----------
+function telaLogin() {
+  return `<main class="conteudo" style="padding-top:48px">
+    <div style="text-align:center;font-size:44px" aria-hidden="true">💇‍♀️</div>
+    <h1 style="text-align:center;color:var(--cor-marca-escura);margin:8px 0 4px">Lucy Cabeleireira</h1>
+    <p class="secundario" style="text-align:center;margin:0 0 24px">Entre para ver a agenda e as fichas</p>
+    <form id="formLogin" novalidate>
+      <label class="rotulo" for="email">E-mail</label>
+      <input class="campo" type="email" id="email" autocomplete="username" required>
+      <label class="rotulo" for="senha">Senha</label>
+      <input class="campo" type="password" id="senha" autocomplete="current-password" required>
+      <p class="erro" id="erroLogin" style="margin-top:12px"></p>
+      <button class="btn primario bloco" style="margin-top:16px" type="submit" id="botaoEntrar">Entrar</button>
+    </form>
+  </main>`;
 }
 
 function abas() {
@@ -496,6 +520,13 @@ function conteudoJanela() {
 
 // ---------- Desenhar ----------
 function desenhar() {
+  if (estado.logado === null) { document.getElementById('app').innerHTML = `<p class="carregando">Carregando…</p>`; return; }
+  if (estado.logado === false) {
+    document.getElementById('app').innerHTML = telaLogin();
+    document.getElementById('janela').innerHTML = '';
+    document.getElementById('email')?.focus();
+    return;
+  }
   let corpo;
   if (estado.carregando) corpo = `<p class="carregando">Carregando…</p>`;
   else if (estado.erroCarregar) {
@@ -635,6 +666,14 @@ const acoes = {
       estado.janela = null; desenhar();
       avisar(`Entrada registrada: ${t.codigo} agora tem ${plural(t.quantidade_tubos, 'tubo')}.`);
     });
+  },
+
+  // --- Sair ---
+  async sair() {
+    try { await api('/sair', { metodo: 'POST' }); } catch { /* mesmo sem resposta, sai da tela */ }
+    Object.assign(estado, { logado: false, janela: null, tela: null, ficha: null, clientes: [], agenda: [],
+                            agendaExtra: [], paraFinalizar: [], horaDeVoltar: [], tinturas: [], busca: '' });
+    desenhar();
   },
 
   // --- Agenda ---
@@ -793,5 +832,35 @@ document.addEventListener('input', evento => {
   }
 });
 
+// ---------- Login (RF-01) ----------
+// O formulário usa "submit": assim a tecla Enter também entra.
+document.addEventListener('submit', async evento => {
+  if (evento.target.id !== 'formLogin') return;
+  evento.preventDefault();
+  const botao = document.getElementById('botaoEntrar');
+  if (botao.disabled) return;
+  botao.disabled = true;
+  try {
+    await api('/login', { metodo: 'POST', corpo: { email: valorDe('email'), senha: valorDe('senha') } });
+    estado.logado = true;
+    await carregarTudo();
+  } catch (e) {
+    document.getElementById('erroLogin').textContent = e.message;
+    botao.disabled = false;
+  }
+});
+
 // ---------- Começar ----------
-carregarTudo();
+// Pergunta ao servidor se já existe um login ativo (cookie de sessão).
+(async () => {
+  try {
+    await api('/eu');
+    estado.logado = true;
+    carregarTudo();
+  } catch (e) {
+    if (estado.logado !== false) {           // não foi 401: o servidor está fora do ar
+      estado.logado = false; desenhar();
+      document.getElementById('erroLogin').textContent = e.message;
+    }
+  }
+})();
