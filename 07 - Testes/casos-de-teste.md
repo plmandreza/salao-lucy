@@ -109,7 +109,7 @@
 | T-44 | Saúde | T-42 ok | Abrir http://localhost:8080/api/saude | `{"servidor":"ok","banco":"ok",…}` | 23/11/2026 | ✅ | evidencias/T-44-*.png |
 | T-45 | RNF-07 (reinício) | Dados cadastrados | `docker compose down` → `docker compose up -d` → abrir de novo | Clientes, agenda e tinturas continuam lá | 23/11/2026 | ✅ | evidencias/T-45-*.png |
 | T-46 | RNF-08 (instalação limpa) | Seguir o README numa cópia nova do projeto | `git clone` em outra pasta → criar `.env` → `docker compose -p salao-limpo up -d --build` (com o original desligado) → criar usuária → abrir | Sobe do zero, com banco vazio e tabelas criadas, só seguindo o README | — | ⏳ | |
-| T-47 | RNF-05 | — | Conferir que o `.env` não está no Git (`git ls-files | grep .env`) e não entra na imagem (`.dockerignore`) | Só aparece `.env.example` | — | ⏳ | |
+| T-47 | RNF-05 | — | Conferir que o `.env` não está no Git (`git ls-files | grep .env`) e não entra na imagem (`.dockerignore`) | 23/11/2026 | ✅ (`git ls-files` lista só o `.env.example`) | evidencias/T-47-*.png | |
 
 ---
 
@@ -118,8 +118,8 @@
 | | Quantidade |
 |---|---|
 | Testes propostos | 47 |
-| Executados | 22 |
-| Aprovados | 22 |
+| Executados | 23 |
+| Aprovados | 23 |
 | Reprovados | 0 (T-18 reprovou 2x e passou após correções) |
-| Não executados | 25 |
+| Não executados | 24 |
 | Defeitos encontrados / corrigidos | 6 / 6 |

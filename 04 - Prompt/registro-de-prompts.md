@@ -156,6 +156,14 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Ainda não executados:** T-46 (instalação limpa) e T-47 (conferir `.env` fora do Git).
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 07 — Decisão de deploy
+
+- **Data:** 23/11/2026
+- **O que pedi:** opções para colocar o sistema no ar.
+- **O que a IA fez:** pesquisou os planos gratuitos **atuais** do Render e do Neon (em vez de responder de memória) e apresentou 3 opções, com custo e limites: A) Render + Neon; B) só Render (banco expira em 30 dias); C) só local + GitHub.
+- **Minha decisão:** **C, implantação local**, porque nesta versão o objetivo é a apresentação para o professor e a turma, sem custo e sem expor dados de saúde. A opção A ficou documentada como próxima versão, com um checklist de segurança (`08 - Deploy/deploy.md`).
+- **Repositório:** público para a apresentação (o `.env` nunca entrou no Git — T-47).
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026
