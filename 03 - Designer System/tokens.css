@@ -1,0 +1,118 @@
+/* =========================================================
+   Lucy Cabeleireira — Design System v1.0
+   Tokens + componentes. Este arquivo será usado pelo
+   sistema real na Etapa 05: não copie cores ou tamanhos
+   soltos no código, use sempre as variáveis abaixo.
+   ========================================================= */
+
+/* ---------- 1. TOKENS ---------- */
+:root{
+  /* Cores da marca */
+  --cor-marca:#7a2e5c;          /* ação principal, cabeçalho, aba ativa */
+  --cor-marca-escura:#5c1f44;   /* títulos e horários */
+  --cor-marca-suave:#f6edf2;    /* fundos leves, linha do histórico */
+
+  /* Neutras */
+  --cor-fundo:#faf7f5;          /* fundo da página */
+  --cor-superficie:#ffffff;     /* cards, campos, janelas */
+  --cor-texto:#2a1f26;          /* texto principal (15,9:1 no branco) */
+  --cor-texto-suave:#66575f;    /* texto secundário (6,8:1 no branco) */
+  --cor-linha:#e9dfe4;          /* divisórias decorativas */
+  --cor-borda-controle:#8f7a86; /* borda de campos e botões (4,0:1) */
+
+  /* Cores com significado — NUNCA usar só para enfeite */
+  --cor-sucesso:#1f7a4d;   --cor-sucesso-suave:#e6f4ec;  /* confirmado, WhatsApp, tudo certo */
+  --cor-atencao:#8a4b00;   --cor-atencao-suave:#fff3e0;  /* pendente, estoque baixo */
+  --cor-perigo:#b42318;    --cor-perigo-suave:#fdecea;   /* ALERGIA, erro, cancelar, excluir */
+  --cor-neutro-status:#4a4458; --cor-neutro-suave:#eceaf0; /* concluído */
+  --cor-foco:#9a6b00;      /* contorno de foco do teclado (4,4:1) */
+
+  /* Tipografia — fonte do próprio aparelho: carrega na hora e é familiar */
+  --fonte:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  --texto-xs:12px;   /* faixas e selos */
+  --texto-sm:14px;   /* informação secundária, rótulos */
+  --texto-md:16px;   /* corpo — nunca menor que isso em campos (evita zoom no iPhone) */
+  --texto-lg:17px;   /* nome da cliente */
+  --texto-xl:20px;   /* horário, título de janela */
+  --texto-2xl:24px;  /* números de estoque */
+  --peso-normal:400; --peso-forte:700; --peso-extra:800;
+  --altura-linha:1.45;
+
+  /* Espaçamento — escala de 4 em 4 px */
+  --esp-1:4px; --esp-2:8px; --esp-3:12px; --esp-4:16px; --esp-5:20px; --esp-6:24px; --esp-8:32px;
+
+  /* Cantos */
+  --raio-controle:10px; --raio-card:14px; --raio-janela:18px; --raio-selo:999px;
+
+  /* Tamanhos */
+  --toque-min:44px;      /* área mínima de toque (RNF-03) */
+  --altura-abas:64px;
+  --largura-max:480px;   /* coluna única, pensada para o celular */
+}
+
+/* ---------- 2. BASE ---------- */
+*{box-sizing:border-box}
+body{margin:0;background:var(--cor-fundo);color:var(--cor-texto);font-family:var(--fonte);font-size:var(--texto-md);line-height:var(--altura-linha)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:3px solid var(--cor-foco);outline-offset:2px}
+.titulo-secao{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--cor-texto-suave);margin:22px 0 10px}
+
+/* ---------- 3. COMPONENTES ---------- */
+
+/* Botão: .btn + variante (.primario | .whatsapp | .perigo) */
+.btn{min-height:var(--toque-min);border-radius:var(--raio-controle);padding:10px 14px;font:inherit;font-size:15px;font-weight:var(--peso-forte);cursor:pointer;border:1px solid var(--cor-borda-controle);background:var(--cor-superficie);color:var(--cor-texto)}
+.btn.primario{background:var(--cor-marca);border-color:var(--cor-marca);color:#fff}
+.btn.whatsapp{background:var(--cor-sucesso);border-color:var(--cor-sucesso);color:#fff}
+.btn.perigo{color:var(--cor-perigo);border-color:var(--cor-perigo)}
+.btn.bloco{width:100%}
+.btn:hover{filter:brightness(.95)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* Card */
+.card{background:var(--cor-superficie);border:1px solid var(--cor-linha);border-radius:var(--raio-card);padding:var(--esp-4);margin-bottom:var(--esp-3)}
+
+/* Selo de status do agendamento */
+.selo{display:inline-block;font-size:var(--texto-xs);font-weight:var(--peso-forte);padding:4px 10px;border-radius:var(--raio-selo)}
+.selo.pendente{background:var(--cor-atencao-suave);color:var(--cor-atencao)}
+.selo.confirmado{background:var(--cor-sucesso-suave);color:var(--cor-sucesso)}
+.selo.concluido{background:var(--cor-neutro-suave);color:var(--cor-neutro-status)}
+.selo.alergia{background:var(--cor-perigo-suave);color:var(--cor-perigo);white-space:normal}
+
+/* Alerta de alergia — o componente mais importante do sistema */
+.alerta-alergia{background:var(--cor-perigo-suave);border:2px solid var(--cor-perigo);color:var(--cor-perigo);border-radius:12px;padding:14px;font-weight:var(--peso-extra);font-size:var(--texto-lg)}
+
+/* Avisos */
+.aviso{background:var(--cor-atencao-suave);color:var(--cor-atencao);border-radius:12px;padding:12px 14px;font-weight:var(--peso-forte)}
+.sucesso{background:var(--cor-sucesso-suave);color:var(--cor-sucesso);border-radius:var(--raio-controle);padding:10px 12px;font-weight:var(--peso-forte)}
+.erro{background:var(--cor-perigo-suave);color:var(--cor-perigo);border-radius:var(--raio-controle);padding:10px 12px;font-weight:var(--peso-forte)}
+.erro:empty{display:none}
+.vazio{color:var(--cor-texto-suave);text-align:center;padding:18px;border:1px dashed var(--cor-borda-controle);border-radius:12px;background:var(--cor-superficie)}
+
+/* Campos */
+.rotulo{display:block;font-weight:var(--peso-forte);font-size:var(--texto-sm);margin:14px 0 6px}
+.campo{width:100%;min-height:var(--toque-min);border:1px solid var(--cor-borda-controle);border-radius:var(--raio-controle);padding:10px 12px;font:inherit;font-size:var(--texto-md);background:var(--cor-superficie);color:var(--cor-texto)}
+.campo[aria-invalid=true]{border:2px solid var(--cor-perigo)}
+.opcao{display:flex;align-items:center;gap:10px;min-height:var(--toque-min);border:1px solid var(--cor-linha);border-radius:var(--raio-controle);padding:8px 12px;margin:6px 0;background:var(--cor-superficie);cursor:pointer}
+.opcao input{width:20px;height:20px;accent-color:var(--cor-marca)}
+
+/* Contador (+ / −) */
+.contador{display:flex;align-items:center;gap:8px}
+.contador .btn{min-width:var(--toque-min);font-size:18px;padding:6px 10px}
+.contador output{min-width:28px;text-align:center;font-weight:var(--peso-extra);font-size:18px}
+
+/* Número de estoque */
+.estoque-num{font-size:var(--texto-2xl);font-weight:var(--peso-extra)}
+.estoque-num.baixo{color:var(--cor-perigo)}
+
+/* Barra de abas */
+.abas{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:var(--largura-max);display:grid;grid-template-columns:repeat(3,1fr);background:var(--cor-superficie);border-top:1px solid var(--cor-linha)}
+.abas button{position:relative;min-height:var(--altura-abas);border:0;background:none;font:inherit;font-size:13px;font-weight:var(--peso-forte);color:var(--cor-texto-suave);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.abas button[aria-current=page]{color:var(--cor-marca)}
+.abas button[aria-current=page]::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--cor-marca);border-radius:0 0 3px 3px}
+.contagem{position:absolute;top:8px;left:calc(50% + 8px);background:var(--cor-perigo);color:#fff;border-radius:var(--raio-selo);font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
+
+/* Janela inferior (modal) */
+.fundo-janela{position:fixed;inset:0;background:#2a1f2699;display:flex;align-items:flex-end;justify-content:center}
+.janela{background:var(--cor-superficie);width:100%;max-width:var(--largura-max);border-radius:var(--raio-janela) var(--raio-janela) 0 0;padding:20px 16px 24px;max-height:90vh;overflow:auto}
+
+/* Aviso rápido no topo */
+.toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--cor-texto);color:#fff;padding:12px 16px;border-radius:var(--raio-controle);font-weight:var(--peso-forte);font-size:var(--texto-sm)}

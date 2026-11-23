@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lucy Cabeleireira — Mockup v0.1</title>
+<style>
+:root{
+  --brand:#7a2e5c;--brand-dark:#5c1f44;--brand-soft:#f6edf2;
+  --bg:#faf7f5;--ink:#2a1f26;--muted:#66575f;--line:#e9dfe4;
+  --ok:#1f7a4d;--ok-soft:#e6f4ec;--warn:#8a4b00;--warn-soft:#fff3e0;
+  --danger:#b42318;--danger-soft:#fdecea;--focus:#c9a227
+}
+*{box-sizing:border-box}
+body{margin:0;background:#efe8ec;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);font-size:16px;line-height:1.45}
+.app{max-width:480px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:84px;box-shadow:0 0 0 1px var(--line)}
+.mock{background:var(--ink);color:#fff;font-size:12px;text-align:center;padding:6px 10px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;background:var(--brand);color:#fff}
+header.top h1{font-size:18px;margin:0}
+header.top small{display:block;opacity:.9;font-size:12px}
+.linkbtn{background:none;border:1px solid #ffffffa0;color:#fff;border-radius:10px;padding:8px 12px;min-height:44px;font:inherit;font-size:14px;cursor:pointer}
+main{padding:16px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin:22px 0 10px}
+h2:first-child{margin-top:4px}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+.card.tap{cursor:pointer}
+.row{display:flex;gap:10px;align-items:flex-start;justify-content:space-between}
+.time{font-weight:800;font-size:20px;color:var(--brand-dark)}
+.name{font-weight:700;font-size:17px}
+.sub{color:var(--muted);font-size:14px;font-weight:400}
+.chip{display:inline-block;font-size:12px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.st-pendente{background:var(--warn-soft);color:var(--warn)}
+.st-confirmado{background:var(--ok-soft);color:var(--ok)}
+.st-concluido{background:#eceaf0;color:#4a4458}
+.chip-alergia{background:var(--danger-soft);color:var(--danger);margin-top:8px;white-space:normal}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.btn{min-height:44px;border-radius:10px;padding:10px 14px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;border:1px solid #d9cbd2;background:#fff;color:var(--ink)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+.btn.wa{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--danger);border-color:#efc3be}
+.btn.block{width:100%}
+.btn.sm{min-height:44px;min-width:44px;padding:6px 10px;font-size:18px}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.card.tap:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.empty{color:var(--muted);text-align:center;padding:18px;border:1px dashed #d9cbd2;border-radius:12px;background:#fff}
+.summary{color:var(--muted);font-size:14px;margin:-4px 0 12px}
+.alerta{background:var(--danger-soft);border:2px solid var(--danger);color:var(--danger);border-radius:12px;padding:14px;font-weight:800;font-size:17px;margin-bottom:12px}
+.aviso{background:var(--warn-soft);color:var(--warn);border-radius:12px;padding:12px 14px;font-weight:700;margin-bottom:12px}
+.okbox{background:var(--ok-soft);color:var(--ok);border-radius:10px;padding:10px 12px;font-weight:700;font-size:14px}
+.erro{background:var(--danger-soft);color:var(--danger);padding:10px 12px;border-radius:10px;font-weight:700;margin-top:12px}
+.erro:empty{display:none}
+label.f{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=tel],input[type=search],input[type=number],select,textarea{width:100%;min-height:44px;border:1px solid #c9b8c1;border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink)}
+textarea{min-height:80px;resize:vertical}
+.check{display:flex;align-items:center;gap:10px;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:6px 0;background:#fff;cursor:pointer}
+.check input{width:20px;height:20px;accent-color:var(--brand)}
+.qty{font-size:24px;font-weight:800}
+.low{color:var(--danger)}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper output{min-width:28px;text-align:center;font-weight:800;font-size:18px}
+.hist{border-left:3px solid var(--brand-soft);padding:4px 0 4px 12px;margin:10px 0}
+.back{background:none;border:0;color:var(--brand);font:inherit;font-weight:700;padding:10px 0;min-height:44px;cursor:pointer}
+nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border-top:1px solid var(--line);z-index:10}
+nav.tabs button{position:relative;min-height:64px;border:0;background:none;font:inherit;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+nav.tabs .ic{font-size:20px}
+nav.tabs button[aria-current=page]{color:var(--brand)}
+nav.tabs button[aria-current=page]::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--brand);border-radius:0 0 3px 3px}
+.badge{position:absolute;top:8px;left:calc(50% + 8px);background:var(--danger);color:#fff;border-radius:999px;font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
+.overlay{position:fixed;inset:0;background:#2a1f2699;display:flex;align-items:flex-end;justify-content:center;z-index:20}
+.sheet{background:#fff;width:100%;max-width:480px;border-radius:18px 18px 0 0;padding:20px 16px 24px;max-height:90vh;overflow:auto}
+.sheet h3{margin:0 0 10px;font-size:19px}
+.bubble{background:#e7f6ec;border-radius:12px;padding:12px;white-space:pre-wrap;margin:10px 0}
+.note{font-size:13px;color:var(--muted)}
+.login{padding:40px 20px}
+.login .logo{font-size:44px;text-align:center}
+.login h1{text-align:center;color:var(--brand-dark);margin:6px 0 2px}
+.login p.c{text-align:center;color:var(--muted);margin:0 0 20px}
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 16px;border-radius:10px;font-weight:700;font-size:14px;z-index:40;max-width:440px;width:calc(100% - 32px);display:none}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="mock">MOCKUP v0.1 · dados fictícios · nada é salvo ao recarregar</div>
+  <div id="app"></div>
+</div>
+<div id="modalRoot"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+/* ===== Datas ===== */
+const hoje = new Date(); hoje.setHours(0,0,0,0);
+const iso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const addDias = n => { const d = new Date(hoje); d.setDate(d.getDate()+n); return iso(d); };
+const br = s => s.split('-').reverse().join('/');
+const diasEntre = (a,b) => Math.round((new Date(b+'T12:00') - new Date(a+'T12:00')) / 86400000);
+const DSEM = ['domingo','segunda','terça','quarta','quinta','sexta','sábado'];
+const rotuloDia = s => DSEM[new Date(s+'T12:00').getDay()] + ', ' + br(s).slice(0,5);
+const quando = s => s===addDias(0) ? 'hoje' : s===addDias(1) ? 'amanhã' : 'no dia '+br(s).slice(0,5);
+const hm = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
+const mh = n => String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ===== Dados fictícios ===== */
+const servicos = [
+  {id:'corte', nome:'Corte', intervalo:45},
+  {id:'tintura', nome:'Tintura', intervalo:30},
+  {id:'escova', nome:'Escova', intervalo:15},
+  {id:'sobrancelha', nome:'Sobrancelha', intervalo:20},
+  {id:'hidratacao', nome:'Hidratação', intervalo:30}
+];
+let tinturas = [
+  {id:1, codigo:'7.0', nome:'Louro médio', marca:'Marca A', qtd:3, min:1},
+  {id:2, codigo:'6.0', nome:'Louro escuro', marca:'Marca A', qtd:2, min:1},
+  {id:3, codigo:'8.1', nome:'Louro claro cinza', marca:'Marca B', qtd:1, min:1},
+  {id:4, codigo:'5.0', nome:'Castanho claro', marca:'Marca B', qtd:4, min:2},
+  {id:5, codigo:'1.0', nome:'Preto', marca:'Marca A', qtd:0, min:1}
+];
+let clientes = [
+  {id:1, nome:'Ana Souza', tel:'(11) 90000-0001', alergias:'PPD (componente de tintura)', consent:true, notas:'Prefere horário pela manhã.', hist:[{data:addDias(-50), serv:['corte'], tint:[]}]},
+  {id:2, nome:'Maria Oliveira', tel:'(11) 90000-0002', alergias:'', consent:true, notas:'Usa 7.0.', hist:[{data:addDias(-33), serv:['tintura','escova'], tint:[{id:1,qtd:1}]}]},
+  {id:3, nome:'Bia Lima', tel:'(11) 90000-0003', alergias:'', consent:true, notas:'', hist:[{data:addDias(-25), serv:['tintura'], tint:[{id:2,qtd:1}]}]},
+  {id:4, nome:'Carla Mendes', tel:'(11) 90000-0004', alergias:'Amônia (irritação no couro cabeludo)', consent:true, notas:'Usar produto sem amônia.', hist:[{data:addDias(-10), serv:['tintura'], tint:[{id:4,qtd:1}]}]},
+  {id:5, nome:'Joana Pereira', tel:'(11) 90000-0005', alergias:'', consent:false, notas:'Cliente nova.', hist:[]}
+];
+let agenda = [
+  {id:1, cli:2, data:addDias(0), hora:'09:00', dur:120, serv:['tintura','escova'], status:'confirmado'},
+  {id:2, cli:1, data:addDias(0), hora:'14:00', dur:60, serv:['corte'], status:'pendente'},
+  {id:3, cli:5, data:addDias(0), hora:'16:00', dur:30, serv:['sobrancelha'], status:'pendente'},
+  {id:4, cli:4, data:addDias(1), hora:'10:00', dur:60, serv:['hidratacao'], status:'pendente'},
+  {id:5, cli:3, data:addDias(1), hora:'15:00', dur:90, serv:['corte','escova'], status:'confirmado'}
+];
+let proxId = 100;
+
+/* ===== Ajudantes ===== */
+const cli = id => clientes.find(c => c.id === +id);
+const ag = id => agenda.find(a => a.id === +id);
+const tin = id => tinturas.find(t => t.id === +id);
+const nomeServ = id => servicos.find(s => s.id === id).nome;
+const nomesServ = arr => arr.map(nomeServ).join(' + ');
+const primeiroNome = n => n.split(' ')[0];
+const ativo = a => a.status === 'pendente' || a.status === 'confirmado';
+const ROT = {pendente:'Pendente', confirmado:'Confirmado', concluido:'Concluído', cancelado:'Cancelado'};
+const estoqueBaixo = () => tinturas.filter(t => t.qtd <= t.min);   // RN-04
+
+// RN-05: data prevista = último atendimento do serviço + intervalo; mostra 7 dias antes
+function horaDeVoltar(){
+  const out = [];
+  clientes.forEach(c => {
+    const ult = {};
+    c.hist.forEach(h => h.serv.forEach(s => { if(!ult[s] || h.data > ult[s]) ult[s] = h.data; }));
+    Object.entries(ult).forEach(([s, d]) => {
+      const sv = servicos.find(x => x.id === s);
+      const prev = new Date(d+'T12:00'); prev.setDate(prev.getDate() + sv.intervalo);
+      const falta = diasEntre(iso(hoje), iso(prev));
+      if (falta <= 7) out.push({c, sv, falta});
+    });
+  });
+  return out.sort((a,b) => a.falta - b.falta);
+}
+
+/* ===== Estado da tela ===== */
+let S = {logado:false, aba:'agenda', tela:null, param:null, modal:null, busca:''};
+
+function toast(msg){
+  const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'block';
+  clearTimeout(window._t); window._t = setTimeout(() => t.style.display = 'none', 2600);
+}
+
+/* ===== Telas ===== */
+function telaLogin(){
+  return `<div class="login">
+    <div class="logo" aria-hidden="true">💇‍♀️</div>
+    <h1>Lucy Cabeleireira</h1>
+    <p class="c">Área da Lucy</p>
+    <label class="f" for="email">E-mail</label>
+    <input type="email" id="email" autocomplete="username" placeholder="lucy@exemplo.com">
+    <label class="f" for="senha">Senha</label>
+    <input type="password" id="senha" autocomplete="current-password">
+    <div class="erro" id="erro"></div>
+    <button class="btn primary block" style="margin-top:18px" data-a="login">Entrar</button>
+    <p class="note" style="text-align:center;margin-top:14px">No mockup, qualquer e-mail e senha entram.</p>
+  </div>`;
+}
+
+function topo(){
+  return `<header class="top"><div><h1>Lucy Cabeleireira</h1><small>${rotuloDia(addDias(0))}</small></div>
+    <button class="linkbtn" data-a="sair">Sair</button></header>`;
+}
+
+function abas(){
+  const nVoltar = horaDeVoltar().length, nBaixo = estoqueBaixo().length;
+  const b = (id, ic, txt, n) => `<button data-a="aba" data-id="${id}" ${S.aba===id && !S.tela ? 'aria-current="page"' : ''}>
+    <span class="ic" aria-hidden="true">${ic}</span>${txt}${n ? `<span class="badge" aria-label="${n} avisos">${n}</span>` : ''}</button>`;
+  return `<nav class="tabs" aria-label="Menu principal">${b('agenda','📅','Agenda',0)}${b('clientes','👩','Clientes',nVoltar)}${b('tinturas','🎨','Tinturas',nBaixo)}</nav>`;
+}
+
+function cardAgenda(a){
+  const c = cli(a.cli), fim = mh(hm(a.hora) + (a.dur || 60));
+  const aberto = a.status !== 'concluido';
+  return `<article class="card">
+    <div class="row">
+      <div><div class="time">${a.hora} <span class="sub">– ${fim}</span></div>
+        <div class="name">${esc(c.nome)}</div><div class="sub">${nomesServ(a.serv)}</div></div>
+      <span class="chip st-${a.status}">${ROT[a.status]}</span>
+    </div>
+    ${c.alergias ? `<span class="chip chip-alergia">⚠️ Alergia: ${esc(c.alergias)}</span>` : ''}
+    <div class="actions">
+      ${aberto ? `<button class="btn wa" data-a="wa" data-id="${a.id}">WhatsApp</button>` : ''}
+      ${a.status==='pendente' ? `<button class="btn primary" data-a="confirmar" data-id="${a.id}">Confirmar</button>` : ''}
+      ${aberto ? `<button class="btn" data-a="finalizar" data-id="${a.id}">Finalizar</button>` : ''}
+      <button class="btn" data-a="abrirFicha" data-id="${c.id}">Ficha</button>
+      ${aberto ? `<button class="btn danger" data-a="cancelar" data-id="${a.id}">Cancelar</button>` : ''}
+    </div></article>`;
+}
+
+function telaAgenda(){
+  const dia = d => agenda.filter(a => a.data === d && a.status !== 'cancelado').sort((x,y) => x.hora.localeCompare(y.hora)); // RN-02
+  const h = dia(addDias(0)), am = dia(addDias(1));
+  const conf = h.filter(a => a.status === 'confirmado').length, pend = h.filter(a => a.status === 'pendente').length;
+  const lista = l => l.length ? l.map(cardAgenda).join('') : `<p class="empty">Nenhum horário.</p>`;
+  return `<button class="btn primary block" data-a="novoHorario">+ Novo horário</button>
+    <h2>Hoje · ${rotuloDia(addDias(0))}</h2>
+    <p class="summary">${h.length} horário(s) · ${conf} confirmado(s) · ${pend} pendente(s)</p>
+    ${lista(h)}
+    <h2>Amanhã · ${rotuloDia(addDias(1))}</h2>${lista(am)}`;
+}
+
+function telaNovoHorario(){
+  return `<button class="back" data-a="voltar">← Voltar</button>
+    <h2>Novo horário</h2>
+    <label class="f" for="fCli">Cliente</label>
+    <select id="fCli"><option value="">Escolha a cliente</option>${clientes.map(c => `<option value="${c.id}">${esc(c.nome)}</option>`).join('')}</select>
+    <label class="f" for="fData">Data</label><input type="date" id="fData" value="${addDias(0)}">
+    <label class="f" for="fHora">Hora de início</label><input type="time" id="fHora" step="900">
+    <label class="f" for="fDur">Duração estimada</label>
+    <select id="fDur">${[30,60,90,120,150,180].map(m => `<option value="${m}" ${m===60?'selected':''}>${m>=60 ? (m/60).toString().replace('.',',')+' h' : m+' min'}</option>`).join('')}</select>
+    <fieldset style="border:0;padding:0;margin:0"><legend class="f" style="font-weight:700;font-size:14px;margin:14px 0 6px">Serviços</legend>
+    ${servicos.map(s => `<label class="check"><input type="checkbox" name="fServ" value="${s.id}"> ${s.nome}</label>`).join('')}</fieldset>
+    <div class="erro" id="erro"></div>
+    <button class="btn primary block" style="margin-top:16px" data-a="salvarHorario">Salvar horário</button>`;
+}
+
+function telaClientes(){
+  const voltar = horaDeVoltar();
+  return `<button class="btn primary block" data-a="novaCliente">+ Nova cliente</button>
+    <h2>Hora de voltar (${voltar.length})</h2>
+    ${voltar.length ? voltar.map(v => `<article class="card"><div class="row"><div>
+        <div class="name">${esc(v.c.nome)}</div>
+        <div class="sub">${v.sv.nome} · ${v.falta < 0 ? `<strong class="low">atrasada há ${-v.falta} dia(s)</strong>` : v.falta === 0 ? '<strong>é hoje</strong>' : `em ${v.falta} dia(s)`}</div></div></div>
+        <div class="actions"><button class="btn wa" data-a="waVoltar" data-id="${v.c.id}" data-serv="${v.sv.id}">Lembrar pelo WhatsApp</button>
+        <button class="btn" data-a="abrirFicha" data-id="${v.c.id}">Ficha</button></div></article>`).join('')
+      : `<p class="empty">Ninguém para chamar agora.</p>`}
+    <h2>Todas as clientes</h2>
+    <label class="f" for="busca" style="margin-top:0">Buscar pelo nome</label>
+    <input type="search" id="busca" placeholder="Ex.: Ana" value="${esc(S.busca)}">
+    <div id="listaClientes" style="margin-top:12px">${listaClientes()}</div>`;
+}
+
+function listaClientes(){
+  const t = S.busca.trim().toLowerCase();
+  const l = clientes.filter(c => c.nome.toLowerCase().includes(t)).sort((a,b) => a.nome.localeCompare(b.nome));
+  return l.length ? l.map(c => `<div class="card tap" tabindex="0" role="button" data-a="abrirFicha" data-id="${c.id}">
+      <div class="name">${esc(c.nome)}</div><div class="sub">${esc(c.tel)}</div>
+      ${c.alergias ? `<span class="chip chip-alergia">⚠️ Alergia: ${esc(c.alergias)}</span>` : ''}</div>`).join('')
+    : `<p class="empty">Nenhuma cliente encontrada.</p>`;
+}
+
+function telaFicha(id){
+  const c = cli(id);
+  if (!c) { S.tela = null; return telaClientes(); }
+  return `<button class="back" data-a="voltar">← Voltar</button>
+    ${c.alergias ? `<div class="alerta" role="alert">⚠️ Alergia: ${esc(c.alergias)}</div>` : ''}
+    <article class="card"><div class="name" style="font-size:21px">${esc(c.nome)}</div><div class="sub">📱 ${esc(c.tel)}</div>
+      <div style="margin-top:10px">${c.consent ? `<span class="chip st-confirmado">✓ Consentimento LGPD registrado</span>` : `<span class="chip st-pendente">Sem consentimento: alergias não podem ser guardadas</span>`}</div></article>
+    <h2>Anotações</h2><article class="card">${c.notas ? esc(c.notas) : '<span class="sub">Sem anotações.</span>'}</article>
+    <h2>Histórico (${c.hist.length})</h2>
+    <article class="card">${c.hist.length ? [...c.hist].sort((a,b) => b.data.localeCompare(a.data)).map(h => `<div class="hist">
+        <strong>${br(h.data)}</strong> · ${nomesServ(h.serv)}
+        ${h.tint.length ? `<div class="sub">Tintura: ${h.tint.map(x => `${tin(x.id)?.codigo ?? '?'} (${x.qtd} tubo${x.qtd>1?'s':''})`).join(', ')}</div>` : ''}</div>`).join('')
+      : '<span class="sub">Nenhum atendimento ainda.</span>'}</article>
+    <button class="btn danger block" data-a="excluirCliente" data-id="${c.id}">Excluir cliente</button>`;
+}
+
+function telaNovaCliente(){
+  return `<button class="back" data-a="voltar">← Voltar</button>
+    <h2>Nova cliente</h2>
+    <label class="f" for="cNome">Nome *</label><input type="text" id="cNome" autocomplete="off">
+    <label class="f" for="cTel">WhatsApp / telefone com DDD *</label><input type="tel" id="cTel" placeholder="(11) 90000-0000">
+    <label class="f" for="cAler">Alergias</label><textarea id="cAler" placeholder="Ex.: PPD, amônia..."></textarea>
+    <label class="check"><input type="checkbox" id="cCons"> A cliente autorizou guardar dados de saúde (alergias) — LGPD</label>
+    <label class="f" for="cNotas">Anotações</label><textarea id="cNotas" placeholder="Preferências, produtos usados..."></textarea>
+    <div class="erro" id="erro"></div>
+    <button class="btn primary block" style="margin-top:16px" data-a="salvarCliente">Salvar cliente</button>`;
+}
+
+function telaTinturas(){
+  const baixo = estoqueBaixo();
+  return `${baixo.length ? `<div class="aviso" role="status">⚠️ Estoque baixo: ${baixo.map(t => `${t.codigo} (${t.qtd} tubo${t.qtd===1?'':'s'})`).join(', ')}</div>` : `<div class="okbox" style="margin-bottom:12px">✓ Todas as tinturas acima do mínimo.</div>`}
+    <button class="btn primary block" data-a="novaTintura">+ Nova tintura</button>
+    <h2>Estoque</h2>
+    ${tinturas.map(t => `<article class="card"><div class="row">
+      <div><div class="name">${esc(t.codigo)} <span class="sub">${esc(t.nome)} · ${esc(t.marca)}</span></div>
+        <div class="sub">Mínimo: ${t.min} tubo${t.min===1?'':'s'}</div></div>
+      <div style="text-align:right"><div class="qty ${t.qtd<=t.min?'low':''}">${t.qtd}</div><div class="sub">tubo${t.qtd===1?'':'s'}</div></div></div>
+      <div class="actions"><button class="btn" data-a="entrada" data-id="${t.id}">+ Entrada de tubos</button></div></article>`).join('')}`;
+}
+
+/* ===== Janelas (modais) ===== */
+function modalHTML(){
+  const m = S.modal;
+  let html = '';
+  if (m.tipo === 'wa') {
+    html = `<h3>Mensagem no WhatsApp</h3><div class="sub">Para: <strong>${esc(m.c.nome)}</strong> · ${esc(m.c.tel)}</div>
+      <div class="bubble">${esc(m.msg)}</div>
+      <p class="note">No sistema real, este botão abre o WhatsApp com a mensagem já escrita. No mockup, mostramos só a prévia.</p>
+      <button class="btn primary block" data-a="fechar">Ok</button>`;
+  }
+  if (m.tipo === 'cancelar') {
+    const a = ag(m.id);
+    html = `<h3>Cancelar horário?</h3><p>${esc(cli(a.cli).nome)} · ${quando(a.data)} às ${a.hora}</p>
+      <div class="actions"><button class="btn danger" data-a="confirmaCancelar">Sim, cancelar</button><button class="btn" data-a="fechar">Não</button></div>`;
+  }
+  if (m.tipo === 'finalizar') {
+    const a = ag(m.id), c = cli(a.cli);
+    html = `<h3>Finalizar atendimento</h3>
+      ${c.alergias ? `<div class="alerta" role="alert">⚠️ Alergia: ${esc(c.alergias)}</div>` : ''}
+      <p><strong>${esc(c.nome)}</strong> · ${nomesServ(a.serv)}</p>
+      <p class="sub">Quantos tubos de cada tintura foram usados?</p>
+      ${tinturas.map(t => `<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)">
+        <div><strong>${esc(t.codigo)}</strong> <span class="sub">${esc(t.nome)} · estoque: ${t.qtd}</span></div>
+        <div class="stepper"><button class="btn sm" aria-label="Menos ${esc(t.codigo)}" data-a="qtd" data-id="${t.id}" data-d="-1">−</button>
+        <output aria-live="polite">${m.qtds[t.id] || 0}</output>
+        <button class="btn sm" aria-label="Mais ${esc(t.codigo)}" data-a="qtd" data-id="${t.id}" data-d="1">+</button></div></div>`).join('')}
+      <div class="erro" id="erroModal">${m.erro ? esc(m.erro) : ''}</div>
+      <div class="actions"><button class="btn primary" data-a="concluir">Concluir atendimento</button><button class="btn" data-a="fechar">Voltar</button></div>`;
+  }
+  if (m.tipo === 'entrada') {
+    const t = tin(m.id);
+    html = `<h3>Entrada de tubos · ${esc(t.codigo)}</h3><p class="sub">Estoque atual: ${t.qtd}</p>
+      <div class="stepper"><button class="btn sm" aria-label="Menos" data-a="qtdEntrada" data-d="-1">−</button><output aria-live="polite">${m.qtd}</output>
+      <button class="btn sm" aria-label="Mais" data-a="qtdEntrada" data-d="1">+</button></div>
+      <p>Novo estoque: <strong>${t.qtd + m.qtd}</strong></p>
+      <div class="actions"><button class="btn primary" data-a="salvarEntrada">Salvar entrada</button><button class="btn" data-a="fechar">Voltar</button></div>`;
+  }
+  if (m.tipo === 'novaTintura') {
+    html = `<h3>Nova tintura</h3>
+      <label class="f" for="tCod">Código (ex.: 7.0) *</label><input type="text" id="tCod">
+      <label class="f" for="tNome">Nome da cor</label><input type="text" id="tNome">
+      <label class="f" for="tMarca">Marca</label><input type="text" id="tMarca">
+      <label class="f" for="tQtd">Tubos em estoque *</label><input type="number" id="tQtd" min="0" value="0">
+      <label class="f" for="tMin">Estoque mínimo *</label><input type="number" id="tMin" min="0" value="1">
+      <div class="erro" id="erroModal"></div>
+      <div class="actions"><button class="btn primary" data-a="salvarTintura">Salvar</button><button class="btn" data-a="fechar">Voltar</button></div>`;
+  }
+  if (m.tipo === 'excluir') {
+    const c = cli(m.id);
+    html = `<h3>Excluir ${esc(c.nome)}?</h3><p>A ficha, o histórico e os horários dela serão apagados. Isso não pode ser desfeito.</p>
+      <div class="actions"><button class="btn danger" data-a="confirmaExcluir">Sim, excluir</button><button class="btn" data-a="fechar">Não</button></div>`;
+  }
+  return `<div class="overlay" data-a="fechar"><div class="sheet" role="dialog" aria-modal="true" data-a="nada">${html}</div></div>`;
+}
+
+/* ===== Desenho geral ===== */
+function render(){
+  const app = document.getElementById('app');
+  if (!S.logado) { app.innerHTML = telaLogin(); renderModal(); return; }
+  let corpo;
+  if (S.tela === 'novoHorario') corpo = telaNovoHorario();
+  else if (S.tela === 'ficha') corpo = telaFicha(S.param);
+  else if (S.tela === 'novaCliente') corpo = telaNovaCliente();
+  else if (S.aba === 'agenda') corpo = telaAgenda();
+  else if (S.aba === 'clientes') corpo = telaClientes();
+  else corpo = telaTinturas();
+  app.innerHTML = topo() + `<main>${corpo}</main>` + abas();
+  renderModal();
+}
+function renderModal(){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = S.modal ? modalHTML() : '';
+  if (S.modal) root.querySelector('.sheet button, .sheet input')?.focus();
+}
+const ir = (tela, param) => { S.tela = tela; S.param = param; render(); scrollTo(0,0); };
+const erro = (txt, id='erro') => { document.getElementById(id).textContent = txt; };
+const msgConfirma = a => { const c = cli(a.cli); return `Olá, ${primeiroNome(c.nome)}! Aqui é a Lucy 💇‍♀️ Estou confirmando seu horário ${quando(a.data)} às ${a.hora} para ${nomesServ(a.serv).toLowerCase()}. Posso confirmar?`; };
+
+/* ===== Ações ===== */
+const acoes = {
+  nada(){},
+  login(){
+    const e = document.getElementById('email').value.trim(), s = document.getElementById('senha').value;
+    if (!e || !s) return erro('E-mail ou senha incorretos.');
+    S.logado = true; render();
+  },
+  sair(){ S = {logado:false, aba:'agenda', tela:null, param:null, modal:null, busca:''}; render(); },
+  aba(id){ S.aba = id; ir(null); },
+  voltar(){ ir(null); },
+  novoHorario(){ ir('novoHorario'); },
+  novaCliente(){ ir('novaCliente'); },
+  abrirFicha(id){ ir('ficha', +id); },
+  salvarHorario(){
+    const cId = document.getElementById('fCli').value, data = document.getElementById('fData').value,
+          hora = document.getElementById('fHora').value, dur = +document.getElementById('fDur').value,
+          serv = [...document.querySelectorAll('[name=fServ]:checked')].map(x => x.value);
+    if (!cId || !data || !hora || !serv.length) return erro('Preencha cliente, data, hora e pelo menos um serviço.');
+    const ini = hm(hora), fim = ini + dur;
+    const choque = agenda.find(a => a.data === data && ativo(a) && ini < hm(a.hora) + (a.dur||60) && hm(a.hora) < fim); // RN-01
+    if (choque) return erro(`Já existe cliente nesse horário: ${cli(choque.cli).nome}, ${choque.hora}–${mh(hm(choque.hora)+(choque.dur||60))}.`);
+    agenda.push({id:proxId++, cli:+cId, data, hora, dur, serv, status:'pendente'});
+    S.aba = 'agenda'; ir(null); toast('Horário salvo como pendente.');
+  },
+  wa(id){ const a = ag(id); S.modal = {tipo:'wa', c:cli(a.cli), msg:msgConfirma(a)}; renderModal(); },
+  waVoltar(id, b){
+    const c = cli(id), sv = servicos.find(s => s.id === b.dataset.serv);
+    S.modal = {tipo:'wa', c, msg:`Olá, ${primeiroNome(c.nome)}! Aqui é a Lucy 💇‍♀️ Já está chegando a hora de renovar: ${sv.nome.toLowerCase()}. Quer marcar um horário?`};
+    renderModal();
+  },
+  confirmar(id){ ag(id).status = 'confirmado'; render(); toast('Horário confirmado.'); },
+  cancelar(id){ S.modal = {tipo:'cancelar', id:+id}; renderModal(); },
+  confirmaCancelar(){ ag(S.modal.id).status = 'cancelado'; S.modal = null; render(); toast('Horário cancelado e liberado.'); },
+  finalizar(id){ S.modal = {tipo:'finalizar', id:+id, qtds:{}, erro:''}; renderModal(); },
+  qtd(id, b){ const q = S.modal.qtds; q[id] = Math.max(0, (q[id]||0) + +b.dataset.d); S.modal.erro = ''; renderModal(); },
+  concluir(){
+    const m = S.modal, a = ag(m.id);
+    const usadas = Object.entries(m.qtds).filter(([,q]) => q > 0).map(([id,q]) => ({id:+id, qtd:q}));
+    const falta = usadas.find(u => tin(u.id).qtd < u.qtd);    // RN-03: estoque nunca negativo
+    if (falta) { m.erro = `Estoque insuficiente de ${tin(falta.id).codigo} — atualize o estoque.`; return renderModal(); }
+    usadas.forEach(u => tin(u.id).qtd -= u.qtd);
+    cli(a.cli).hist.push({data:a.data, serv:[...a.serv], tint:usadas});
+    a.status = 'concluido'; S.modal = null; render();
+    const baixos = usadas.map(u => tin(u.id)).filter(t => t.qtd <= t.min).map(t => t.codigo);
+    toast('Atendimento finalizado. Estoque atualizado.' + (baixos.length ? ` ⚠️ Estoque baixo: ${baixos.join(', ')}` : ''));
+  },
+  entrada(id){ S.modal = {tipo:'entrada', id:+id, qtd:1}; renderModal(); },
+  qtdEntrada(_, b){ S.modal.qtd = Math.max(1, S.modal.qtd + +b.dataset.d); renderModal(); },
+  salvarEntrada(){ const t = tin(S.modal.id); t.qtd += S.modal.qtd; S.modal = null; render(); toast(`Entrada registrada: ${t.codigo} agora tem ${t.qtd} tubos.`); },
+  novaTintura(){ S.modal = {tipo:'novaTintura'}; renderModal(); },
+  salvarTintura(){
+    const cod = document.getElementById('tCod').value.trim(), qtd = parseInt(document.getElementById('tQtd').value, 10), min = parseInt(document.getElementById('tMin').value, 10);
+    if (!cod || isNaN(qtd) || isNaN(min) || qtd < 0 || min < 0) return erro('Preencha código, tubos e mínimo (números a partir de 0).', 'erroModal');
+    tinturas.push({id:proxId++, codigo:cod, nome:document.getElementById('tNome').value.trim(), marca:document.getElementById('tMarca').value.trim(), qtd, min});
+    S.modal = null; render(); toast('Tintura cadastrada.');
+  },
+  salvarCliente(){
+    const nome = document.getElementById('cNome').value.trim(), tel = document.getElementById('cTel').value.trim(),
+          aler = document.getElementById('cAler').value.trim(), cons = document.getElementById('cCons').checked;
+    if (!nome || !tel) return erro('Nome e telefone são obrigatórios.');               // RN-07
+    if (aler && !cons) return erro('Para guardar alergias, marque o consentimento da cliente (LGPD).'); // RNF-06
+    const c = {id:proxId++, nome, tel, alergias:aler, consent:cons, notas:document.getElementById('cNotas').value.trim(), hist:[]};
+    clientes.push(c); ir('ficha', c.id); toast('Cliente cadastrada.');
+  },
+  excluirCliente(id){ S.modal = {tipo:'excluir', id:+id}; renderModal(); },
+  confirmaExcluir(){
+    const id = S.modal.id; clientes = clientes.filter(c => c.id !== id); agenda = agenda.filter(a => a.cli !== id);
+    S.modal = null; S.aba = 'clientes'; ir(null); toast('Cliente e dados excluídos.');
+  },
+  fechar(){ S.modal = null; renderModal(); }
+};
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-a]'); if (!b) return;
+  if (b.dataset.a === 'nada' && e.target.closest('[data-a]') === b) return;
+  acoes[b.dataset.a]?.(b.dataset.id, b);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.modal) acoes.fechar();
+  if (e.key === 'Enter' && e.target.matches('.card.tap')) e.target.click();
+  if (e.key === 'Enter' && e.target.matches('#senha,#email')) acoes.login();
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'busca') { S.busca = e.target.value; document.getElementById('listaClientes').innerHTML = listaClientes(); }
+});
+render();
+</script>
+</body>
+</html>
