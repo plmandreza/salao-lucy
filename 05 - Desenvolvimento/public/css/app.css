@@ -1,0 +1,21 @@
+/* =========================================================
+   Layout das telas. Cores, tamanhos e componentes vêm do
+   tokens.css (Design System): aqui só a organização.
+   ========================================================= */
+.app{max-width:var(--largura-max);margin:0 auto;min-height:100vh;background:var(--cor-fundo);padding-bottom:calc(var(--altura-abas) + var(--esp-5))}
+.topo{display:flex;align-items:center;justify-content:space-between;gap:var(--esp-3);padding:var(--esp-3) var(--esp-4);background:var(--cor-marca);color:#fff}
+.topo h1{font-size:18px;margin:0}
+.topo small{display:block;opacity:.9;font-size:var(--texto-xs)}
+.conteudo{padding:var(--esp-4)}
+.titulo-secao:first-child{margin-top:var(--esp-1)}
+.linha{display:flex;gap:var(--esp-3);align-items:flex-start;justify-content:space-between}
+.acoes{display:flex;flex-wrap:wrap;gap:var(--esp-2);margin-top:var(--esp-3)}
+.nome{font-weight:var(--peso-forte);font-size:var(--texto-lg)}
+.secundario{color:var(--cor-texto-suave);font-size:var(--texto-sm);font-weight:var(--peso-normal)}
+.direita{text-align:right}
+.janela h2{margin:0 0 var(--esp-3);font-size:var(--texto-xl)}
+.carregando{color:var(--cor-texto-suave);text-align:center;padding:var(--esp-6)}
+.toast[hidden]{display:none}
+.toast{width:calc(100% - 32px);max-width:440px;z-index:40}
+.fundo-janela{z-index:20}
+.abas{z-index:10}
