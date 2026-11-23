@@ -71,7 +71,7 @@ Ajudar a Lucy a **confirmar e organizar seus horários**, **lembrar as clientes 
 
 - H1: a Lucy vai usar o sistema pelo **celular** durante o dia. *(ainda não perguntado)*
 - H2: o botão que abre o WhatsApp com a mensagem pronta é suficiente, sem precisar de envio automático.
-- H3: as clientes aceitam ter seus dados de saúde (alergias) guardados digitalmente. Pela **LGPD**, são **dados sensíveis**, e o sistema precisa registrar o consentimento.
+- H3: ~~as clientes aceitam ter seus dados de saúde (alergias) guardados digitalmente, com consentimento.~~ **Revisada em 23/11/2026:** a alergia é guardada com base na proteção da incolumidade física da cliente (LGPD, art. 11, II, "e"), sem caixinha de consentimento. Ver a seção 7 da especificação de requisitos.
 
 ## 9. Dúvidas em aberto
 

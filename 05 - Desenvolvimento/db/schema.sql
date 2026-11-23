@@ -21,16 +21,16 @@ CREATE TABLE IF NOT EXISTS servicos (
 );
 
 -- Fichas das clientes — RF-07, RN-07, RNF-06
+-- Alergia é dado de saúde (sensível pela LGPD). Base legal adotada:
+-- art. 11, II, "e" — proteção da incolumidade física da cliente
+-- (evitar reação alérgica no atendimento). Ver RNF-06.
 CREATE TABLE IF NOT EXISTS clientes (
-  id                   SERIAL PRIMARY KEY,
-  nome                 TEXT NOT NULL CHECK (btrim(nome) <> ''),
-  telefone             TEXT NOT NULL CHECK (btrim(telefone) <> ''),   -- RN-07: obrigatório
-  alergias             TEXT NOT NULL DEFAULT '',
-  consentimento_saude  BOOLEAN NOT NULL DEFAULT false,
-  anotacoes            TEXT NOT NULL DEFAULT '',
-  criado_em            TIMESTAMPTZ NOT NULL DEFAULT now(),
-  -- RNF-06 (LGPD): só guarda alergia se a cliente consentiu
-  CONSTRAINT alergia_exige_consentimento CHECK (alergias = '' OR consentimento_saude)
+  id         SERIAL PRIMARY KEY,
+  nome       TEXT NOT NULL CHECK (btrim(nome) <> ''),
+  telefone   TEXT NOT NULL CHECK (btrim(telefone) <> ''),   -- RN-07: obrigatório
+  alergias   TEXT NOT NULL DEFAULT '',
+  anotacoes  TEXT NOT NULL DEFAULT '',
+  criado_em  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 -- Estoque de tinturas, contado em tubos — RF-13, RF-14, RN-03

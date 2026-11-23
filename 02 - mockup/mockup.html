@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Lucy Cabeleireira — Mockup v0.1</title>
+<title>Lucy Cabeleireira — Mockup v0.2</title>
 <style>
 :root{
   --brand:#7a2e5c;--brand-dark:#5c1f44;--brand-soft:#f6edf2;
   --bg:#faf7f5;--ink:#2a1f26;--muted:#66575f;--line:#e9dfe4;
   --ok:#1f7a4d;--ok-soft:#e6f4ec;--warn:#8a4b00;--warn-soft:#fff3e0;
-  --danger:#b42318;--danger-soft:#fdecea;--focus:#c9a227
+  --danger:#b42318;--danger-soft:#fdecea;--focus:#9a6b00;--control:#8f7a86
 }
 *{box-sizing:border-box}
 body{margin:0;background:#efe8ec;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);font-size:16px;line-height:1.45}
@@ -34,10 +34,10 @@ h2:first-child{margin-top:4px}
 .st-concluido{background:#eceaf0;color:#4a4458}
 .chip-alergia{background:var(--danger-soft);color:var(--danger);margin-top:8px;white-space:normal}
 .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-.btn{min-height:44px;border-radius:10px;padding:10px 14px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;border:1px solid #d9cbd2;background:#fff;color:var(--ink)}
+.btn{min-height:44px;border-radius:10px;padding:10px 14px;font:inherit;font-size:15px;font-weight:700;cursor:pointer;border:1px solid var(--control);background:#fff;color:var(--ink)}
 .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
 .btn.wa{background:var(--ok);border-color:var(--ok);color:#fff}
-.btn.danger{color:var(--danger);border-color:#efc3be}
+.btn.danger{color:var(--danger);border-color:var(--danger)}
 .btn.block{width:100%}
 .btn.sm{min-height:44px;min-width:44px;padding:6px 10px;font-size:18px}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.card.tap:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
@@ -49,7 +49,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .erro{background:var(--danger-soft);color:var(--danger);padding:10px 12px;border-radius:10px;font-weight:700;margin-top:12px}
 .erro:empty{display:none}
 label.f{display:block;font-weight:700;font-size:14px;margin:14px 0 6px}
-input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=tel],input[type=search],input[type=number],select,textarea{width:100%;min-height:44px;border:1px solid #c9b8c1;border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink)}
+input[type=text],input[type=email],input[type=password],input[type=date],input[type=time],input[type=tel],input[type=search],input[type=number],select,textarea{width:100%;min-height:44px;border:1px solid var(--control);border-radius:10px;padding:10px 12px;font:inherit;background:#fff;color:var(--ink)}
 textarea{min-height:80px;resize:vertical}
 .check{display:flex;align-items:center;gap:10px;min-height:44px;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:6px 0;background:#fff;cursor:pointer}
 .check input{width:20px;height:20px;accent-color:var(--brand)}
@@ -79,7 +79,7 @@ nav.tabs button[aria-current=page]::before{content:'';position:absolute;top:0;le
 </head>
 <body>
 <div class="app">
-  <div class="mock">MOCKUP v0.1 · dados fictícios · nada é salvo ao recarregar</div>
+  <div class="mock">MOCKUP v0.2 · dados fictícios · nada é salvo ao recarregar</div>
   <div id="app"></div>
 </div>
 <div id="modalRoot"></div>
@@ -114,11 +114,11 @@ let tinturas = [
   {id:5, codigo:'1.0', nome:'Preto', marca:'Marca A', qtd:0, min:1}
 ];
 let clientes = [
-  {id:1, nome:'Ana Souza', tel:'(11) 90000-0001', alergias:'PPD (componente de tintura)', consent:true, notas:'Prefere horário pela manhã.', hist:[{data:addDias(-50), serv:['corte'], tint:[]}]},
-  {id:2, nome:'Maria Oliveira', tel:'(11) 90000-0002', alergias:'', consent:true, notas:'Usa 7.0.', hist:[{data:addDias(-33), serv:['tintura','escova'], tint:[{id:1,qtd:1}]}]},
-  {id:3, nome:'Bia Lima', tel:'(11) 90000-0003', alergias:'', consent:true, notas:'', hist:[{data:addDias(-25), serv:['tintura'], tint:[{id:2,qtd:1}]}]},
-  {id:4, nome:'Carla Mendes', tel:'(11) 90000-0004', alergias:'Amônia (irritação no couro cabeludo)', consent:true, notas:'Usar produto sem amônia.', hist:[{data:addDias(-10), serv:['tintura'], tint:[{id:4,qtd:1}]}]},
-  {id:5, nome:'Joana Pereira', tel:'(11) 90000-0005', alergias:'', consent:false, notas:'Cliente nova.', hist:[]}
+  {id:1, nome:'Ana Souza', tel:'(00) 90000-0001', alergias:'PPD (componente de tintura)', consent:true, notas:'Prefere horário pela manhã.', hist:[{data:addDias(-50), serv:['corte'], tint:[]}]},
+  {id:2, nome:'Maria Oliveira', tel:'(00) 90000-0002', alergias:'', consent:true, notas:'Usa 7.0.', hist:[{data:addDias(-33), serv:['tintura','escova'], tint:[{id:1,qtd:1}]}]},
+  {id:3, nome:'Bia Lima', tel:'(00) 90000-0003', alergias:'', consent:true, notas:'', hist:[{data:addDias(-25), serv:['tintura'], tint:[{id:2,qtd:1}]}]},
+  {id:4, nome:'Carla Mendes', tel:'(00) 90000-0004', alergias:'Amônia (irritação no couro cabeludo)', consent:true, notas:'Usar produto sem amônia.', hist:[{data:addDias(-10), serv:['tintura'], tint:[{id:4,qtd:1}]}]},
+  {id:5, nome:'Joana Pereira', tel:'(00) 90000-0005', alergias:'', consent:false, notas:'Cliente nova.', hist:[]}
 ];
 let agenda = [
   {id:1, cli:2, data:addDias(0), hora:'09:00', dur:120, serv:['tintura','escova'], status:'confirmado'},
@@ -283,7 +283,7 @@ function telaNovaCliente(){
   return `<button class="back" data-a="voltar">← Voltar</button>
     <h2>Nova cliente</h2>
     <label class="f" for="cNome">Nome *</label><input type="text" id="cNome" autocomplete="off">
-    <label class="f" for="cTel">WhatsApp / telefone com DDD *</label><input type="tel" id="cTel" placeholder="(11) 90000-0000">
+    <label class="f" for="cTel">WhatsApp / telefone com DDD *</label><input type="tel" id="cTel" placeholder="(00) 90000-0000">
     <label class="f" for="cAler">Alergias</label><textarea id="cAler" placeholder="Ex.: PPD, amônia..."></textarea>
     <label class="check"><input type="checkbox" id="cCons"> A cliente autorizou guardar dados de saúde (alergias) — LGPD</label>
     <label class="f" for="cNotas">Anotações</label><textarea id="cNotas" placeholder="Preferências, produtos usados..."></textarea>

@@ -1,7 +1,7 @@
 # Especificação de Requisitos — Lucy Cabeleireira
 
 **Etapa 02 — Levantamento e especificação de requisitos**
-**Responsável:** [Seu nome] · **Data:** 23/11/2026 · **Versão:** 0.1 (rascunho para revisão)
+**Responsável:** [Seu nome] · **Data:** 23/11/2026 · **Versão:** 0.2 (ver histórico de mudanças na seção 7)
 **Base:** Documento de Visão v0.1 e entrevista com a Lucy. Nenhum requisito foi criado sem origem nessa base.
 
 **Legenda de prioridade:** 🔴 **Deve ter** (MVP) · 🟡 **Deveria ter** (fazer se der tempo) · ⚪ **Futuro**
@@ -28,7 +28,7 @@
 ### Clientes e fichas
 | ID | Requisito | Prioridade | Situação |
 |---|---|---|---|
-| RF-07 | Cadastrar, editar e excluir cliente: **nome, telefone (WhatsApp), alergias, anotações** e **consentimento** para guardar dados de saúde. | 🔴 | ✅ |
+| RF-07 | Cadastrar, editar e excluir cliente: **nome, telefone (WhatsApp), alergias** e **anotações**. | 🔴 | ✅ *(alterado na v0.2 — ver seção 7)* |
 | RF-08 | **Buscar** cliente pelo nome. | 🔴 | ✅ |
 | RF-09 | Exibir a ficha da cliente com as **alergias em destaque no topo** e o **histórico** de atendimentos. | 🔴 | ✅ |
 | RF-10 | **Finalizar atendimento**: registrar no histórico a data, o(s) serviço(s) e as tinturas usadas (quantidade de tubos), mudar o status para **concluído** e **baixar o estoque**. | 🔴 | ✅ |
@@ -55,7 +55,7 @@ Cada RNF tem uma **medida** para poder ser testado. "Rápido" ou "seguro" sem n�
 | RNF-03 | Acessibilidade | Leitura fácil | Contraste mínimo de **4,5:1** (WCAG AA); botões com no mínimo **44 px** de altura |
 | RNF-04 | Segurança | Só a Lucy acessa | Todas as páginas e rotas, exceto o login, exigem autenticação; senha guardada com **hash** (nunca em texto puro) |
 | RNF-05 | Segurança | Nenhum segredo no Git | Senhas e chaves só no arquivo `.env`, que fica fora do repositório; o repositório tem apenas `.env.example` |
-| RNF-06 | Privacidade (LGPD) | Alergias são **dado sensível** | A ficha só guarda alergias com o **consentimento marcado**; excluir a cliente apaga todos os dados dela |
+| RNF-06 | Privacidade (LGPD) | Alergias são **dado sensível**. Base legal: **art. 11, II, "e"** da LGPD — proteção da incolumidade física da cliente (evitar reação alérgica) | A alergia é usada só no atendimento; só a Lucy acessa (RNF-04); excluir a cliente apaga todos os dados dela |
 | RNF-07 | Confiabilidade | Dados não se perdem | Os dados continuam lá depois de reiniciar o sistema (`docker compose down` e `up`) |
 | RNF-08 | Portabilidade | Roda em outro computador | Sobe com `docker compose up -d --build` seguindo o README, em uma máquina limpa |
 | RNF-09 | Desempenho | Resposta rápida | Agenda e ficha abrem em até **2 segundos** com 500 clientes cadastradas (ambiente local) |
@@ -100,7 +100,7 @@ Cada RNF tem uma **medida** para poder ser testado. "Rápido" ou "seguro" sem n�
 ### HU-04 — Ver alergia antes do atendimento (RF-07, RF-09, RNF-06)
 **Como** Lucy, **quero** ver as alergias da cliente assim que abro a ficha, **para** não aplicar um produto que cause reação.
 - **CA-04.1** Dado a cliente Ana com a alergia "PPD (tintura)", quando a Lucy abre a ficha, então aparece um aviso em destaque *"⚠️ Alergia: PPD (tintura)"* **acima** de todas as outras informações.
-- **CA-04.2** Dado uma cliente sem consentimento marcado, quando a Lucy tenta salvar uma alergia, então o sistema pede para marcar o consentimento primeiro.
+- **CA-04.2** Dado a ficha da Ana com a alergia "PPD", quando a Lucy edita a ficha e apaga o texto da alergia, então o aviso vermelho deixa de aparecer na ficha e na lista.
 
 ### HU-05 — Finalizar atendimento e baixar o estoque (RF-10, RN-03, RN-04)
 **Como** Lucy, **quero** que o estoque de tinturas se atualize quando eu termino um atendimento, **para** saber quantos tubos realmente tenho.
@@ -148,3 +148,12 @@ Liga cada problema ao requisito, à tela, ao código e ao teste. As colunas **C�
 4. Ela aprova o texto da mensagem de confirmação? (RN-06)
 5. O que ela quis dizer com "não tem tolerância aceitável pelo cancelamento"? (RN-08)
 6. Ela vai usar mais no celular ou no computador? (RNF-01)
+
+---
+
+## 7. Histórico de mudanças
+
+| Versão | Data | Mudança | Motivo | Decidido por |
+|---|---|---|---|---|
+| 0.1 | 23/11/2026 | Primeira versão | Entrevista com a Lucy | [Seu nome] |
+| 0.2 | 23/11/2026 | **Removida a exigência de consentimento** para guardar alergias (RF-07, RNF-06, CA-04.2) | Durante os testes da Etapa 05, percebi que a caixinha de consentimento **não provava nada** (só registrava que a Lucy disse que a cliente autorizou) e criava trabalho no dia a dia. A LGPD permite tratar dado sensível sem consentimento para a **proteção da incolumidade física** do titular (art. 11, II, "e"), que é exatamente a finalidade de anotar a alergia: evitar uma reação no atendimento. A proteção continua por outros meios: acesso só com login e exclusão completa dos dados. *Observação: é uma interpretação feita no contexto acadêmico, não um parecer jurídico.* | [Seu nome] |

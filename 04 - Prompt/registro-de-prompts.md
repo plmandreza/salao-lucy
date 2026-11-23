@@ -47,6 +47,35 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
   - **Lição:** o código gerado pela IA precisou ser executado, investigado nos logs e corrigido. É a "validação humana" do slide 12.
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 05 — Parte 2: estoque de tinturas (RF-13, RF-14, RF-15)
+
+- **Data:** 23/11/2026
+- **Prompt usado (modelo do roteiro do Prof. Bruno):**
+  > Atue como desenvolvedor full-stack sênior. Analise os RF-13, RF-14 e RF-15, os critérios de aceitação HU-07 e CA-05.2, o mockup e o Design System. Implemente APENAS esses requisitos em Node.js/Express + PostgreSQL + HTML/CSS/JS. Primeiro liste arquivos e alterações propostas; depois gere código com validação, tratamento de erro e testes pertinentes. Explique como executar e comprovar cada critério. Não altere outros módulos sem justificar.
+- **O que a IA entregou:** rotas `/api/tinturas` no `server.js` (listar, cadastrar, editar, entrada de tubos); telas em `public/index.html`, `public/css/app.css` e `public/js/app.js`, usando as classes do Design System.
+- **Verificação feita pela IA:**
+  - As consultas SQL foram executadas num PostgreSQL 16 (cadastro, duplicidade recusada, entrada somada pelo banco, alerta calculado).
+  - As telas foram testadas num navegador automático com um servidor simulado. Os testes **encontraram um defeito**: fechar a janela enquanto o servidor respondia travava a tela. Ele foi corrigido, e também foi acrescentado o bloqueio de clique duplo em "Salvar".
+  - O `server.js` real foi executado por mim (a IA não tinha as bibliotecas).
+- **Decisões:** a soma da entrada de tubos é feita pelo banco (`quantidade + X`), para não errar com o sistema aberto em dois aparelhos; mensagens técnicas do banco são traduzidas para mensagens que a Lucy entende.
+- **Minha execução (23/11/2026):** teste 1 (cadastro com alerta de estoque baixo) ✅ · teste 2 (entrada de 4 tubos, alerta some) ✅
+- **Defeito encontrado por mim no teste manual:** a janela de cadastro fechava ao clicar fora dela, e o que já tinha sido digitado se perdia. **Correção:** as janelas fecham só pelo botão "Voltar" ou pela tecla Esc (`desenharJanela` em `app.js`). Testado de novo: clicar fora mantém a janela aberta e o texto digitado.
+- **Minha revisão:** [o que entendi ou mudei]
+
+## Etapa 05 — Parte 3: clientes e fichas (RF-07, RF-08, RF-09, RNF-06)
+
+- **Data:** 23/11/2026
+- **Prompt usado (modelo do roteiro):**
+  > Atue como desenvolvedor full-stack sênior. Implemente APENAS os RF-07, RF-08 e RF-09, com os critérios CA-04.1 (alergia em destaque) e CA-04.2 (consentimento LGPD), seguindo o mockup e o Design System. Primeiro liste arquivos e alterações; depois gere código com validação e tratamento de erro. Explique como comprovar cada critério.
+- **O que a IA entregou:** rotas `/api/clientes` no `server.js` (listar, ficha com histórico, cadastrar, editar, excluir) e as telas Clientes e Ficha em `public/js/app.js`.
+- **Verificação feita pela IA:**
+  - A consulta do histórico foi testada num PostgreSQL 16 com atendimentos simulados, e a exclusão em cascata foi conferida (o histórico some e o estoque não muda).
+  - As telas foram testadas num navegador automático com servidor simulado: busca sem acento, alergia como primeiro elemento da ficha, bloqueio da LGPD, telefone sem DDD, cadastro, edição e exclusão.
+- **Decisões:** o consentimento é conferido em **três lugares** (tela, servidor e banco); a busca ignora acentos ("andrea" acha "Andréa"); o histórico já está pronto para receber os atendimentos do RF-10.
+- **Mudança de requisito decidida por mim (23/11/2026):** questionei a caixinha de consentimento da LGPD, porque ela não provava a autorização e só criava trabalho para a Lucy. Pedi à IA as alternativas. Ela apresentou 3 opções e citou a base legal do art. 11, II, "e" da LGPD (proteção da incolumidade física), avisando que era interpretação e não parecer jurídico. **Escolhi remover a exigência.** A IA alterou o banco (com a migração `db/migracoes/001-remover-consentimento.sql`, testada num PostgreSQL com a estrutura antiga), o servidor, a tela e os documentos (especificação v0.2, seção 7).
+- **Minha execução:** [resultado dos testes T-09 a T-15]
+- **Minha revisão:** [o que entendi ou mudei]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026
