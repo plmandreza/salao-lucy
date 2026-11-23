@@ -1,0 +1,10 @@
+# Bibliotecas baixadas pelo npm (qualquer um recria com "npm install")
+node_modules/
+
+# Senhas e configurações locais — NUNCA no Git (RNF-05)
+.env
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+npm-debug.log*

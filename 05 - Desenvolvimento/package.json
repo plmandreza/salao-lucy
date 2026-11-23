@@ -1,0 +1,19 @@
+{
+  "name": "salao-lucy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Sistema de agenda, fichas de clientes e estoque de tinturas do salão da Lucy",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node --env-file=.env --watch server.js",
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.13.0"
+  }
+}

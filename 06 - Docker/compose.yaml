@@ -1,0 +1,35 @@
+# =========================================================
+# Docker Compose — por enquanto só o banco de dados.
+# Na Etapa 06 o servidor Node também entra aqui.
+#
+# Rodar (dentro desta pasta):  docker compose up -d
+# Ver estado:                  docker compose ps
+# Parar:                       docker compose down
+# =========================================================
+name: salao-lucy
+
+services:
+  db:
+    image: postgres:16-alpine
+    env_file: "../05 - Desenvolvimento/.env" # usuário, senha e nome do banco
+    environment:
+      PGPORT: "5432" # dentro do contêiner, sempre 5432
+    ports:
+      - "5433:5432" # porta do PC : porta do contêiner
+    volumes:
+      # Onde os dados ficam guardados. Sobrevive ao "down" (RNF-07).
+      - dados-postgres:/var/lib/postgresql/data
+      # Cria as tabelas na primeira vez que o banco sobe.
+      - type: bind
+        source: "../05 - Desenvolvimento/db/schema.sql"
+        target: /docker-entrypoint-initdb.d/01-schema.sql
+        read_only: true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  dados-postgres:

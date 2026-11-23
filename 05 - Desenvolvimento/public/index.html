@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lucy Cabeleireira</title>
+<link rel="stylesheet" href="css/tokens.css">
+<style>
+  .pagina{max-width:var(--largura-max);margin:0 auto;padding:var(--esp-6) var(--esp-4)}
+  h1{color:var(--cor-marca-escura);margin:0 0 var(--esp-2)}
+  .linha{display:flex;justify-content:space-between;padding:var(--esp-2) 0;border-bottom:1px solid var(--cor-linha)}
+</style>
+</head>
+<body>
+<div class="pagina">
+  <h1>💇‍♀️ Lucy Cabeleireira</h1>
+  <p style="color:var(--cor-texto-suave)">Etapa 05 · teste de instalação</p>
+  <article class="card">
+    <div class="linha"><span>Servidor (Node.js)</span><strong id="servidor">verificando…</strong></div>
+    <div class="linha"><span>Banco de dados (PostgreSQL)</span><strong id="banco">verificando…</strong></div>
+    <div class="linha" style="border:0"><span>Serviços cadastrados</span><strong id="servicos">—</strong></div>
+  </article>
+  <p id="mensagem" class="erro"></p>
+</div>
+<script>
+  // Pergunta ao servidor se está tudo funcionando
+  fetch('/api/saude')
+    .then(resposta => resposta.json())
+    .then(dados => {
+      document.getElementById('servidor').textContent = '✓ funcionando';
+      document.getElementById('banco').textContent = dados.banco === 'ok' ? '✓ conectado' : '✗ sem conexão';
+      document.getElementById('servicos').textContent = dados.servicos ?? '—';
+      if (dados.mensagem) document.getElementById('mensagem').textContent = dados.mensagem;
+    })
+    .catch(() => {
+      document.getElementById('servidor').textContent = '✗ fora do ar';
+      document.getElementById('mensagem').textContent = 'O servidor não respondeu. Ele está rodando no terminal?';
+    });
+</script>
+</body>
+</html>
