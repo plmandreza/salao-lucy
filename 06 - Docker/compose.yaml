@@ -1,25 +1,32 @@
 # =========================================================
-# Docker Compose — por enquanto só o banco de dados.
-# Na Etapa 06 o servidor Node também entra aqui.
+# Docker Compose — o sistema inteiro: banco + servidor
 #
-# Rodar (dentro desta pasta):  docker compose up -d
-# Ver estado:                  docker compose ps
-# Parar:                       docker compose down
+# Comandos (rodar DENTRO desta pasta "06 - Docker"):
+#   docker compose up -d --build   liga tudo (e reconstrói a caixa do servidor)
+#   docker compose ps              mostra se está tudo "healthy"
+#   docker compose logs -f app     acompanha o que o servidor escreve (Ctrl+C sai)
+#   docker compose down            desliga tudo (os dados FICAM guardados)
+#
+# O sistema abre em: http://localhost:8080
 # =========================================================
 name: salao-lucy
 
 services:
+
+  # ---------- Banco de dados (PostgreSQL) ----------
   db:
     image: postgres:16-alpine
-    env_file: "../05 - Desenvolvimento/.env" # usuário, senha e nome do banco
+    env_file: "../05 - Desenvolvimento/.env"       # usuário, senha e nome do banco
     environment:
-      PGPORT: "5432" # dentro do contêiner, sempre 5432
+      PGPORT: "5432"                               # dentro do contêiner, sempre 5432
     ports:
-      - "5433:5432" # porta do PC : porta do contêiner
+      # Só para acessar o banco do seu PC (npm run dev). 5433 no PC para não
+      # brigar com outro PostgreSQL instalado no Windows.
+      - "5433:5432"
     volumes:
       # Onde os dados ficam guardados. Sobrevive ao "down" (RNF-07).
       - dados-postgres:/var/lib/postgresql/data
-      # Cria as tabelas na primeira vez que o banco sobe.
+      # Cria as tabelas na primeira vez que o banco sobe (banco vazio).
       - type: bind
         source: "../05 - Desenvolvimento/db/schema.sql"
         target: /docker-entrypoint-initdb.d/01-schema.sql
@@ -29,6 +36,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
+
+  # ---------- Servidor (Node.js + Express + telas) ----------
+  app:
+    build:
+      context: "../05 - Desenvolvimento"           # a pasta do código (onde está o Dockerfile)
+    env_file: "../05 - Desenvolvimento/.env"
+    environment:
+      # Dentro do Docker, o servidor encontra o banco pelo NOME do serviço ("db"),
+      # na porta interna 5432 — e não em localhost:5433 como no npm run dev.
+      PGHOST: db
+      PGPORT: "5432"
+      PORT: "3000"
+    ports:
+      - "8080:3000"                                # porta do PC : porta do contêiner
+    depends_on:
+      db:
+        condition: service_healthy                 # só liga depois que o banco estiver pronto
     restart: unless-stopped
 
 volumes:

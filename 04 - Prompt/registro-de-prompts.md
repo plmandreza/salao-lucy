@@ -140,6 +140,22 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Minha execução:** [resultado dos testes T-36 a T-41]
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 06 — Ambiente Docker e execução reproduzível
+
+- **Data:** 23/11/2026
+- **Prompt usado (do roteiro do Prof. Bruno):**
+  > Atue como engenheiro DevOps. Avalie a stack e a árvore de arquivos do sistema. Crie Dockerfile, compose.yaml, .env.example, healthchecks e volumes necessários. Explique os serviços, riscos e comandos para build, subida, verificação, logs e parada. Não inclua credenciais reais e não afirme que o ambiente funciona sem execução comprovada.
+- **O que a IA entregou:** `05 - Desenvolvimento/Dockerfile` (Node 22 Alpine, `npm ci`, usuário sem privilégio, healthcheck em `/api/saude`), `.dockerignore` (sem `node_modules` e sem `.env`), `06 - Docker/compose.yaml` com os serviços `db` e `app` (o `app` só liga depois do banco *healthy*; dados num volume) e o `README.md` com instalação, comandos, migrações e problemas comuns.
+- **Verificação feita pela IA:** `docker compose config` validou o arquivo e mostrou que, dentro do Docker, o servidor usa `PGHOST=db` e porta 5432. **A IA não conseguiu construir nem ligar os contêineres** (sem Docker no ambiente dela): a comprovação é a minha execução (T-42 a T-47).
+- **Decisões:**
+  - Versão Docker em **http://localhost:8080** e versão de desenvolvimento em **http://localhost:3000**, para as duas poderem rodar juntas.
+  - O `Dockerfile` fica **junto do código** (`05 - Desenvolvimento`), porque é o código que ele empacota; o `compose.yaml` fica em `06 - Docker`.
+  - Senhas entram pelo `env_file` na hora de ligar, **nunca dentro da imagem**.
+  - Risco documentado: `docker compose down -v` **apaga os dados**; o README traz o comando de backup (`pg_dump`).
+- **Minha execução (23/11/2026):** `docker compose up -d --build` construiu a imagem `salao-lucy-app` em ~16 s; `docker compose ps` mostrou **db e app (healthy)**; o sistema abriu em http://localhost:8080 com os mesmos dados; `/api/saude` respondeu `{"servidor":"ok","banco":"ok",…,"servicos":5}`. **Teste de persistência:** `docker compose down` (o site saiu do ar) → `docker compose up -d` → os dados continuavam lá (RNF-07). Único tropeço: colei `docker compose ps` duas vezes na mesma linha e o Docker não entendeu — erro de digitação, não do sistema.
+- **Ainda não executados:** T-46 (instalação limpa) e T-47 (conferir `.env` fora do Git).
+- **Minha revisão:** [o que entendi ou mudei]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026

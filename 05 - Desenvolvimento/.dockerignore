@@ -1,0 +1,12 @@
+# Coisas que NÃO entram na caixa (imagem) do Docker
+
+# Bibliotecas: a caixa instala as dela com "npm ci"
+node_modules
+
+# Senhas: entram pelo compose.yaml (env_file), nunca dentro da imagem (RNF-05)
+.env
+
+# Arquivos que não servem para rodar o sistema
+npm-debug.log*
+Dockerfile
+.dockerignore

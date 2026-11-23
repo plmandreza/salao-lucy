@@ -100,15 +100,26 @@
 | T-40 | RNF-04 (tentativas) | — | Errar a senha 5 vezes → tentar a 6ª | "Muitas tentativas erradas. Espere 15 minutos…" | — | ⏳ | |
 | T-41 | RNF-04 (hash) | Usuária criada | No terminal: `docker compose exec db psql -U lucy -d salao -c "SELECT email, senha_hash FROM usuarios"` | A senha aparece embaralhada (`scrypt$…`), nunca como foi digitada | — | ⏳ | |
 
+## Ambiente Docker (Etapa 06 — RNF-07, RNF-08)
+
+| ID | Requisito / critério | Pré-condição | Passos | Resultado esperado | Data | Situação | Evidência |
+|---|---|---|---|---|---|---|---|
+| T-42 | RNF-08 | Docker Desktop ligado | Em `06 - Docker`: `docker compose up -d --build` → `docker compose ps` | `db` e `app` aparecem **(healthy)** | 23/11/2026 | ✅ | evidencias/T-42-*.png |
+| T-43 | RNF-08 | T-42 ok | Abrir http://localhost:8080 e entrar com a usuária | O sistema completo funciona pela versão Docker, com os mesmos dados | 23/11/2026 | ✅ | evidencias/T-43-*.png |
+| T-44 | Saúde | T-42 ok | Abrir http://localhost:8080/api/saude | `{"servidor":"ok","banco":"ok",…}` | 23/11/2026 | ✅ | evidencias/T-44-*.png |
+| T-45 | RNF-07 (reinício) | Dados cadastrados | `docker compose down` → `docker compose up -d` → abrir de novo | Clientes, agenda e tinturas continuam lá | 23/11/2026 | ✅ | evidencias/T-45-*.png |
+| T-46 | RNF-08 (instalação limpa) | Seguir o README numa cópia nova do projeto | `git clone` em outra pasta → criar `.env` → `docker compose -p salao-limpo up -d --build` (com o original desligado) → criar usuária → abrir | Sobe do zero, com banco vazio e tabelas criadas, só seguindo o README | — | ⏳ | |
+| T-47 | RNF-05 | — | Conferir que o `.env` não está no Git (`git ls-files | grep .env`) e não entra na imagem (`.dockerignore`) | Só aparece `.env.example` | — | ⏳ | |
+
 ---
 
 ## Resumo (para o slide 15)
 
 | | Quantidade |
 |---|---|
-| Testes propostos | 41 |
-| Executados | 18 |
-| Aprovados | 18 |
+| Testes propostos | 47 |
+| Executados | 22 |
+| Aprovados | 22 |
 | Reprovados | 0 (T-18 reprovou 2x e passou após correções) |
-| Não executados | 23 |
+| Não executados | 25 |
 | Defeitos encontrados / corrigidos | 6 / 6 |
