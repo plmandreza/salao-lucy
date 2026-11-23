@@ -4,6 +4,8 @@ Sistema web para o salão da Lucy: **agenda** com confirmação pelo WhatsApp, *
 
 Projeto acadêmico de Vibe Coding — Graduação em ADS · Prof. Me. Bruno Rodrigues · [Seu nome] · 2026
 
+**Repositório:** https://github.com/plmandreza/salao-lucy · **Demonstração:** local, com Docker (ver abaixo e `08 - Deploy/deploy.md`)
+
 | Camada | Tecnologia |
 |---|---|
 | Telas (frontend) | HTML, CSS e JavaScript puros (`05 - Desenvolvimento/public`) |

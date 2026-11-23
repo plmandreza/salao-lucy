@@ -12,7 +12,7 @@ O sistema é implantado e demonstrado **no computador da desenvolvedora**, com D
 | | |
 |---|---|
 | **Endereço da demonstração** | http://localhost:8080 |
-| **Repositório** | [link do GitHub] |
+| **Repositório** | https://github.com/plmandreza/salao-lucy |
 | **Como rodar** | `README.md` → "Como rodar (com Docker)" |
 | **Comprovação** | Testes T-42 a T-45 (`07 - Testes/evidencias`) |
 
