@@ -19,3 +19,5 @@
 .toast{width:calc(100% - 32px);max-width:440px;z-index:40}
 .fundo-janela{z-index:20}
 .abas{z-index:10}
+/* Link com cara de botão (ex.: WhatsApp) */
+a.btn{display:inline-flex;align-items:center;text-decoration:none}

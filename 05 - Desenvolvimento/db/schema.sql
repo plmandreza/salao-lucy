@@ -49,15 +49,16 @@ CREATE TABLE IF NOT EXISTS agendamentos (
   id           SERIAL PRIMARY KEY,
   cliente_id   INTEGER NOT NULL REFERENCES clientes(id) ON DELETE CASCADE,
   inicio       TIMESTAMP NOT NULL,                 -- data e hora no horário do salão
-  duracao_min  INTEGER NOT NULL DEFAULT 60 CHECK (duracao_min BETWEEN 5 AND 600),
+  duracao_min  INTEGER CHECK (duracao_min BETWEEN 5 AND 600),   -- opcional (RF-02)
   status       TEXT NOT NULL DEFAULT 'pendente'
                CHECK (status IN ('pendente','confirmado','cancelado','concluido')),
   observacao   TEXT NOT NULL DEFAULT '',
   criado_em    TIMESTAMPTZ NOT NULL DEFAULT now(),
   -- RN-01: uma cliente por vez. O próprio banco recusa dois horários
   -- ativos que se sobreponham (mesmo que o código tenha um erro).
+  -- Sem duração informada, o horário ocupa só o minuto de início.
   CONSTRAINT uma_cliente_por_vez EXCLUDE USING gist (
-    tsrange(inicio, inicio + make_interval(mins => duracao_min)) WITH &&
+    tsrange(inicio, inicio + make_interval(mins => COALESCE(duracao_min, 1))) WITH &&
   ) WHERE (status IN ('pendente','confirmado'))
 );
 

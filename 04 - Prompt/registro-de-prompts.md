@@ -76,6 +76,32 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Minha execução:** [resultado dos testes T-09 a T-15]
 - **Minha revisão:** [o que entendi ou mudei]
 
+## Etapa 05 — Parte 4: agenda (RF-02 a RF-06, RN-01, RN-02, RN-06)
+
+- **Data:** 23/11/2026
+- **Prompt usado (modelo do roteiro):**
+  > Atue como desenvolvedor full-stack sênior. Implemente APENAS a agenda: RF-02 (marcar), RF-03 (hoje e amanhã), RF-04 (confirmar/cancelar), RF-05 (WhatsApp com mensagem pronta), RF-06 (remarcar), com as regras RN-01, RN-02 e RN-06 e os critérios HU-01, HU-02 e HU-03. Primeiro liste arquivos e alterações; depois gere código com validação e tratamento de erro. Explique como comprovar cada critério.
+- **O que a IA entregou:** rotas `/api/servicos` e `/api/agenda` no `server.js` (listar, marcar, confirmar/cancelar, remarcar) e a aba Agenda em `public/js/app.js`.
+- **Verificação feita pela IA:**
+  - As consultas foram testadas num PostgreSQL 16: detecção de choque com o nome da cliente, remarcação sem "colidir" com o próprio horário, nomes das regras do banco para as mensagens de erro.
+  - As telas foram testadas num navegador automático com servidor simulado: link do WhatsApp com a mensagem RN-06, bloqueio de horário sobreposto, confirmar, remarcar, cancelar e ver outro dia.
+- **Decisões:**
+  - O **WhatsApp abre por link** (`wa.me`), sem integração paga: funciona no WhatsApp comum da Lucy (RF-05).
+  - Marcar um horário grava em duas tabelas dentro de uma **transação**: ou grava tudo, ou nada.
+  - **Remarcar volta o horário para "pendente"**, porque a cliente precisa confirmar a nova data.
+  - Além de "hoje e amanhã" (RF-03), foi incluído **"ver outro dia"**, para a Lucy conferir horários marcados para a semana seguinte.
+  - O choque de horário (RN-01) é conferido pelo servidor, com o nome da cliente, **e** pelo banco, como segurança extra.
+- **Inconsistência encontrada por mim (23/11/2026):** a tela exigia a duração estimada, mas o RF-02 da especificação diz "duração estimada (opcional)". A IA admitiu o erro de implementação, explicou a consequência (sem duração, a regra "uma cliente por vez" só consegue bloquear o mesmo horário de início) e corrigiu banco (migração `002-duracao-opcional.sql`, testada num banco antigo e num novo), servidor e tela. A especificação passou para a v0.3.
+- **Defeito D-04 encontrado por mim no teste T-18:** o emoji 💇‍♀️ chegou como "�" no WhatsApp. A IA explicou que esse emoji é formado por vários símbolos e que o redirecionamento do WhatsApp o corrompeu; como não temos controle sobre isso, o emoji foi retirado da mensagem.
+- **Cuidado com dados reais:** no mesmo teste, percebi que a ficha de teste ainda tinha um número com DDD 11, que pode existir. Não enviei a mensagem e troquei o número para DDD 00.
+- **Defeito D-05 encontrado por mim ao refazer o T-18:** a mensagem saiu certa (D-04 resolvido), mas o número continuava o antigo. Causa: ao salvar a ficha, a agenda não era recarregada. Corrigido em `salvarEdicaoCliente`.
+- **Duas perguntas minhas que viraram melhorias:**
+  1. *"Por que a janela de cancelar está no final da página?"* A IA explicou que foi de propósito (janela inferior, perto do polegar no celular), mas concordou que no computador fica estranho. Agora ela fica **embaixo no celular e centralizada a partir de 600 px**. O Design System foi atualizado.
+  2. *"Por que tem esse ⚠️ no nome da Ana?"* Era o aviso de alergia, mas sem texto ninguém entende, e isso quebrava a regra do próprio Design System ("ícone nunca sozinho"). Agora aparece "Ana — ⚠️ tem alergia" (defeito D-06).
+- **Melhoria pedida por mim:** máscara automática no telefone. A Lucy digita só os números e o sistema forma `(00) 90000-0001`, com limite de 11 números. O servidor também padroniza o formato antes de gravar. A IA testou digitação, colar, apagar, número fixo e fichas antigas; o cuidado principal foi **não reformatar ao apagar**, senão não daria para apagar o traço.
+- **Minha execução:** [resultado dos testes T-16 a T-24]
+- **Minha revisão:** [o que entendi ou mudei]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026

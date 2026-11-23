@@ -141,6 +141,14 @@ app.post('/api/tinturas/:id/entrada', async (req, res) => {
 //            RNF-06 (LGPD: alergia protegida por login e apagada ao excluir)
 // =========================================================
 
+// Guarda o telefone sempre no mesmo formato: "(00) 90000-0001"
+function formatarTelefone(digitos) {
+  const ddd = digitos.slice(0, 2), resto = digitos.slice(2);
+  return resto.length === 9
+    ? `(${ddd}) ${resto.slice(0, 5)}-${resto.slice(5)}`
+    : `(${ddd}) ${resto.slice(0, 4)}-${resto.slice(4)}`;
+}
+
 // Lê e confere os dados de uma cliente enviados pela tela
 function lerCliente(corpo) {
   const dados = {
@@ -154,6 +162,7 @@ function lerCliente(corpo) {
   if (digitos.length < 10 || digitos.length > 11) {              // RN-07 + RNF-10: com DDD
     return { erro: 'Informe o WhatsApp com DDD, no formato (XX) 9XXXX-XXXX.' };
   }
+  dados.telefone = formatarTelefone(digitos);                     // padroniza antes de gravar
   return { dados };
 }
 
@@ -238,6 +247,192 @@ app.delete('/api/clientes/:id', async (req, res) => {
   res.status(204).end();
 });
 
+// =========================================================
+// SERVIÇOS — lista usada no formulário de agendamento (RF-12)
+// =========================================================
+app.get('/api/servicos', async (req, res) => {
+  const { rows } = await banco.query(
+    'SELECT id, nome, intervalo_retorno_dias FROM servicos ORDER BY nome'
+  );
+  res.json(rows);
+});
+
+// =========================================================
+// AGENDA — RF-02 (marcar), RF-03 (listar), RF-04 (confirmar/cancelar),
+//          RF-06 (remarcar), RN-01 (uma cliente por vez), RN-02 (cancelado some)
+// =========================================================
+
+// Formatos aceitos: data "2026-11-23" e hora "14:30"
+const FORMATO_DATA = /^\d{4}-\d{2}-\d{2}$/;
+const FORMATO_HORA = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+// Abre uma "transação": ou TUDO dá certo, ou NADA é gravado.
+// Usada quando uma ação grava em mais de uma tabela.
+async function transacao(tarefa) {
+  const conexao = await banco.connect();
+  try {
+    await conexao.query('BEGIN');
+    const resultado = await tarefa(conexao);
+    await conexao.query('COMMIT');
+    return resultado;
+  } catch (erro) {
+    await conexao.query('ROLLBACK');
+    throw erro;
+  } finally {
+    conexao.release();
+  }
+}
+
+// Consulta base da agenda: datas e horas já formatadas pelo banco,
+// para não haver confusão de fuso horário entre servidor e tela.
+const CONSULTA_AGENDA = `
+  SELECT a.id, a.cliente_id, c.nome, c.telefone, c.alergias,
+         to_char(a.inicio, 'YYYY-MM-DD') AS data,
+         to_char(a.inicio, 'HH24:MI') AS hora,
+         -- sem duração não há horário de fim (fica vazio)
+         to_char(a.inicio + make_interval(mins => a.duracao_min), 'HH24:MI') AS fim,
+         a.duracao_min, a.status, a.observacao,
+         COALESCE((SELECT json_agg(json_build_object('id', s.id, 'nome', s.nome) ORDER BY s.nome)
+                     FROM agendamento_servicos x JOIN servicos s ON s.id = x.servico_id
+                    WHERE x.agendamento_id = a.id), '[]') AS servicos
+    FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id`;
+
+async function buscarAgendamento(id, conexao = banco) {
+  const { rows } = await conexao.query(`${CONSULTA_AGENDA} WHERE a.id = $1`, [id]);
+  return rows[0];
+}
+
+// RN-01: procura um horário ativo que se sobreponha ao novo.
+// Devolve uma mensagem amigável com o nome da cliente que já está lá.
+// Sem duração informada, o horário ocupa só o minuto de início (COALESCE … 1).
+async function choqueDeHorario(inicio, duracao, ignorarId = 0, conexao = banco) {
+  const { rows } = await conexao.query(
+    `SELECT c.nome, to_char(a.inicio, 'HH24:MI') AS hora,
+            to_char(a.inicio + make_interval(mins => a.duracao_min), 'HH24:MI') AS fim
+       FROM agendamentos a JOIN clientes c ON c.id = a.cliente_id
+      WHERE a.status IN ('pendente', 'confirmado')
+        AND a.id <> $3
+        AND tsrange(a.inicio, a.inicio + make_interval(mins => COALESCE(a.duracao_min, 1)))
+         && tsrange($1::timestamp, $1::timestamp + make_interval(mins => COALESCE($2::int, 1)))
+      LIMIT 1`,
+    [inicio, duracao, ignorarId]
+  );
+  if (!rows.length) return null;
+  const { nome, hora, fim } = rows[0];
+  return `Já existe cliente nesse horário: ${nome}, ${fim ? `${hora}–${fim}` : `às ${hora}`}.`;
+}
+
+// Lê e confere data, hora e duração (a duração é OPCIONAL — RF-02)
+function lerHorario(corpo) {
+  const data = texto(corpo.data), hora = texto(corpo.hora);
+  const informouDuracao = corpo.duracao_min !== undefined && corpo.duracao_min !== null && corpo.duracao_min !== '';
+  const duracao = informouDuracao ? inteiro(corpo.duracao_min, 5) : null;
+  if (!FORMATO_DATA.test(data)) return { erro: 'Escolha a data.' };
+  if (!FORMATO_HORA.test(hora)) return { erro: 'Escolha a hora de início.' };
+  if (informouDuracao && (!duracao || duracao > 600)) {
+    return { erro: 'A duração precisa ser entre 5 minutos e 10 horas.' };
+  }
+  return { inicio: `${data} ${hora}`, duracao };
+}
+
+// Listar a agenda de um período (a tela pede hoje e amanhã — RF-03)
+app.get('/api/agenda', async (req, res) => {
+  const de = texto(req.query.de), ate = texto(req.query.ate);
+  if (!FORMATO_DATA.test(de) || !FORMATO_DATA.test(ate)) {
+    return res.status(400).json({ erro: 'Período inválido.' });
+  }
+  const { rows } = await banco.query(
+    `${CONSULTA_AGENDA}
+      WHERE a.inicio >= $1::date AND a.inicio < $2::date + 1
+        AND a.status <> 'cancelado'                -- RN-02: cancelado não aparece
+      ORDER BY a.inicio`,
+    [de, ate]
+  );
+  res.json(rows);
+});
+
+// Marcar um horário novo (RF-02). Status inicial: pendente.
+app.post('/api/agenda', async (req, res) => {
+  const corpo = req.body ?? {};
+  const clienteId = inteiro(corpo.cliente_id, 1);
+  const servicos = Array.isArray(corpo.servicos) ? corpo.servicos.map(s => inteiro(s, 1)) : [];
+  if (!clienteId) return res.status(400).json({ erro: 'Escolha a cliente.' });
+  const { erro, inicio, duracao } = lerHorario(corpo);
+  if (erro) return res.status(400).json({ erro });
+  if (!servicos.length || servicos.includes(null)) {
+    return res.status(400).json({ erro: 'Escolha pelo menos um serviço.' });
+  }
+
+  const resultado = await transacao(async conexao => {
+    const choque = await choqueDeHorario(inicio, duracao, 0, conexao);
+    if (choque) return { erro: choque };
+    const { rows } = await conexao.query(
+      `INSERT INTO agendamentos (cliente_id, inicio, duracao_min, observacao)
+       VALUES ($1, $2::timestamp, $3, $4) RETURNING id`,
+      [clienteId, inicio, duracao, texto(corpo.observacao)]
+    );
+    await conexao.query(
+      `INSERT INTO agendamento_servicos (agendamento_id, servico_id)
+       SELECT $1, unnest($2::int[])`,
+      [rows[0].id, [...new Set(servicos)]]
+    );
+    return { agendamento: await buscarAgendamento(rows[0].id, conexao) };
+  });
+
+  if (resultado.erro) return res.status(409).json({ erro: resultado.erro });
+  res.status(201).json(resultado.agendamento);
+});
+
+// Confirmar ou cancelar (RF-04).
+// Só pode confirmar o que está pendente; só pode cancelar o que está ativo.
+const MUDANCAS_PERMITIDAS = {
+  confirmado: ['pendente'],
+  cancelado: ['pendente', 'confirmado']
+};
+
+app.patch('/api/agenda/:id/status', async (req, res) => {
+  const id = inteiro(req.params.id, 1);
+  const novo = texto(req.body?.status);
+  if (!id) return res.status(404).json({ erro: 'Horário não encontrado.' });
+  if (!MUDANCAS_PERMITIDAS[novo]) return res.status(400).json({ erro: 'Situação inválida.' });
+
+  const { rowCount } = await banco.query(
+    `UPDATE agendamentos SET status = $1 WHERE id = $2 AND status = ANY($3)`,
+    [novo, id, MUDANCAS_PERMITIDAS[novo]]
+  );
+  if (!rowCount) {
+    const existe = await buscarAgendamento(id);
+    return existe
+      ? res.status(409).json({ erro: 'Esse horário não pode mais ser alterado.' })
+      : res.status(404).json({ erro: 'Horário não encontrado.' });
+  }
+  res.json(await buscarAgendamento(id));
+});
+
+// Remarcar: muda data, hora e duração (RF-06).
+// O horário volta para "pendente", porque precisa ser confirmado de novo.
+app.put('/api/agenda/:id', async (req, res) => {
+  const id = inteiro(req.params.id, 1);
+  if (!id) return res.status(404).json({ erro: 'Horário não encontrado.' });
+  const { erro, inicio, duracao } = lerHorario(req.body ?? {});
+  if (erro) return res.status(400).json({ erro });
+
+  const resultado = await transacao(async conexao => {
+    const choque = await choqueDeHorario(inicio, duracao, id, conexao);
+    if (choque) return { erro: choque, codigo: 409 };
+    const { rowCount } = await conexao.query(
+      `UPDATE agendamentos SET inicio = $1::timestamp, duracao_min = $2, status = 'pendente'
+        WHERE id = $3 AND status IN ('pendente', 'confirmado')`,
+      [inicio, duracao, id]
+    );
+    if (!rowCount) return { erro: 'Esse horário não pode mais ser remarcado.', codigo: 409 };
+    return { agendamento: await buscarAgendamento(id, conexao) };
+  });
+
+  if (resultado.erro) return res.status(resultado.codigo).json({ erro: resultado.erro });
+  res.json(resultado.agendamento);
+});
+
 // ---------------------------------------------------------
 // Rotas da API que não existem → 404 em JSON
 // ---------------------------------------------------------
@@ -253,7 +448,10 @@ const MENSAGENS_DO_BANCO = {
   tinturas_codigo_marca_key: 'Já existe uma tintura com esse código e essa marca.',
   tinturas_quantidade_tubos_check: 'O estoque não pode ficar negativo.',
   clientes_telefone_check: 'Informe o WhatsApp com DDD.',
-  clientes_nome_check: 'Informe o nome da cliente.'
+  clientes_nome_check: 'Informe o nome da cliente.',
+  uma_cliente_por_vez: 'Já existe cliente nesse horário.',                  // RN-01 (segurança extra)
+  agendamentos_cliente_id_fkey: 'Essa cliente não existe mais. Recarregue a página.',
+  agendamento_servicos_servico_id_fkey: 'Serviço inválido. Recarregue a página.'
 };
 
 app.use((erro, req, res, next) => {

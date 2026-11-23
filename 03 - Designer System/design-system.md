@@ -82,7 +82,7 @@ Usamos a **fonte do próprio aparelho** (`system-ui`): ela não precisa ser baix
 | Contador | `.contador` | — | Tubos usados, entrada de tubos |
 | Número de estoque | `.estoque-num` | `.baixo` | Tinturas |
 | Barra de abas | `.abas` + `.contagem` | aba ativa com `aria-current="page"` | Rodapé |
-| Janela inferior | `.fundo-janela` + `.janela` | — | Finalizar, cancelar, WhatsApp |
+| Janela (modal) | `.fundo-janela` + `.janela` | **Embaixo no celular** (perto do polegar) e **centralizada a partir de 600 px** (computador e tablet) | Finalizar, cancelar, formulários |
 | Aviso rápido | `.toast` | — | Depois de salvar |
 
 ### Regras de uso
@@ -90,7 +90,7 @@ Usamos a **fonte do próprio aparelho** (`system-ui`): ela não precisa ser baix
 - **Um único botão primário por tela.** Ele é a ação principal.
 - **Ações perigosas** (cancelar, excluir) usam `.perigo` e **sempre pedem confirmação** numa janela.
 - **Vermelho é reservado** para alergia, erro e perigo. Se tudo for vermelho, a alergia deixa de chamar atenção.
-- **Ícone nunca aparece sozinho:** sempre acompanha um texto (📅 Agenda).
+- **Ícone nunca aparece sozinho:** sempre acompanha um texto (📅 Agenda, ⚠️ tem alergia). *Esta regra foi quebrada na primeira versão da agenda (um ⚠️ sozinho ao lado do nome) e corrigida depois do teste.*
 - **Mensagens de erro dizem o que fazer:** "Estoque insuficiente de 7.0 — atualize o estoque".
 
 ## 7. Acessibilidade
@@ -106,7 +106,7 @@ Usamos a **fonte do próprio aparelho** (`system-ui`): ela não precisa ser baix
 ## 8. Responsividade
 
 - **Celular (até 480 px):** layout completo, como no mockup.
-- **Computador:** a mesma coluna centralizada, com fundo nas laterais. É uma decisão consciente para o MVP, porque a Lucy vai usar mais o celular. *Futuro:* layout de duas colunas no computador (agenda e ficha lado a lado).
+- **Computador:** a mesma coluna centralizada, com fundo nas laterais. As janelas aparecem **centralizadas** a partir de 600 px de largura (no celular ficam embaixo). É uma decisão consciente para o MVP, porque a Lucy vai usar mais o celular. *Futuro:* layout de duas colunas no computador (agenda e ficha lado a lado).
 
 ## 9. Como validar (roteiro do Prof. Bruno)
 

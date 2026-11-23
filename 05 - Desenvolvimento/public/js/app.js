@@ -14,6 +14,45 @@ function hojeTexto() {
 // "2026-11-23" → "23/11/2026"
 const dataBR = iso => iso.split('-').reverse().join('/');
 
+// Data de hoje (ou daqui a N dias) no formato "2026-11-23", no horário do aparelho
+function diaISO(diasAMais = 0) {
+  const d = new Date();
+  d.setDate(d.getDate() + diasAMais);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+// "2026-11-24" → "terça, 24/11"
+const rotuloDia = iso => `${DIAS[new Date(iso + 'T12:00').getDay()]}, ${dataBR(iso).slice(0, 5)}`;
+// "hoje", "amanhã" ou "no dia 30/11" — usado na mensagem do WhatsApp
+const quando = iso => iso === diaISO(0) ? 'hoje' : iso === diaISO(1) ? 'amanhã' : `no dia ${dataBR(iso).slice(0, 5)}`;
+
+// Máscara de telefone: "00900000001" → "(00) 90000-0001"
+// Aceita fixo (10 números) e celular (11 números), sempre com DDD.
+function formatarTelefone(valor) {
+  const d = String(valor ?? '').replace(/\D/g, '').slice(0, 11);
+  if (!d) return '';
+  if (d.length <= 2) return `(${d}`;
+  const ddd = d.slice(0, 2), resto = d.slice(2);
+  if (resto.length <= 4) return `(${ddd}) ${resto}`;
+  if (d.length <= 10) return `(${ddd}) ${resto.slice(0, 4)}-${resto.slice(4)}`;
+  return `(${ddd}) ${resto.slice(0, 5)}-${resto.slice(5)}`;
+}
+
+// RF-05: link que abre o WhatsApp da cliente com a mensagem já escrita.
+// "(21) 98888-7777" → "5521988887777" (55 = código do Brasil)
+function linkWhatsApp(telefone, mensagem) {
+  let numero = telefone.replace(/\D/g, '');
+  if (numero.length <= 11) numero = '55' + numero;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+}
+
+// RN-06: mensagem padrão de confirmação.
+// SEM emoji: no teste, o 💇‍♀️ chegou como "�" porque o redirecionamento
+// do WhatsApp (wa.me → api.whatsapp.com) estragou o símbolo (defeito D-04).
+function mensagemConfirmacao(a) {
+  const servicos = a.servicos.map(s => s.nome.toLowerCase()).join(' + ');
+  return `Olá, ${a.nome.split(' ')[0]}! Aqui é a Lucy. Estou confirmando seu horário ${quando(a.data)} às ${a.hora} para ${servicos}. Posso confirmar?`;
+}
+
 // Protege contra texto malicioso: transforma < > & " ' em texto comum
 function esc(valor) {
   return String(valor ?? '').replace(/[&<>"']/g, c =>
@@ -23,7 +62,7 @@ function esc(valor) {
 const plural = (n, palavra) => `${n} ${palavra}${n === 1 ? '' : 's'}`;
 
 // Compara textos sem ligar para maiúsculas e acentos ("Andréa" acha "andrea")
-const semAcento = t => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+const semAcento = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 
 // ---------- Conversa com o servidor ----------
 async function api(caminho, { metodo = 'GET', corpo } = {}) {
@@ -44,12 +83,16 @@ async function api(caminho, { metodo = 'GET', corpo } = {}) {
 
 // ---------- Estado da tela ----------
 const estado = {
-  aba: 'clientes',      // aba escolhida no menu de baixo
+  aba: 'agenda',        // aba escolhida no menu de baixo (agenda = prioridade nº 1)
   tela: null,           // tela "por cima" da aba: 'ficha' ou null
   carregando: true,
   erroCarregar: '',
   tinturas: [],
   clientes: [],
+  servicos: [],
+  agenda: [],           // horários de hoje e amanhã (RF-03)
+  diaExtra: '',         // outro dia escolhido pela Lucy
+  agendaExtra: [],
   busca: '',
   ficha: null,          // ficha aberta (com histórico)
   janela: null          // janela aberta: { tipo, ... } ou null
@@ -83,9 +126,50 @@ function abas() {
 const seloAlergia = alergias => alergias
   ? `<span class="selo alergia" style="margin-top:8px">⚠️ Alergia: ${esc(alergias)}</span>` : '';
 
-// ---------- Tela: Agenda (em construção) ----------
+// ---------- Tela: Agenda (RF-02 a RF-06) ----------
+const ROTULO_STATUS = { pendente: 'Pendente', confirmado: 'Confirmado', concluido: 'Concluído' };
+
+function cardHorario(a) {
+  const ativo = a.status === 'pendente' || a.status === 'confirmado';
+  return `<article class="card">
+    <div class="linha">
+      <div>
+        <div style="font-size:var(--texto-xl);font-weight:var(--peso-extra);color:var(--cor-marca-escura)">
+          ${a.hora}${a.fim ? ` <span class="secundario">– ${a.fim}</span>` : ''}</div>
+        <div class="nome">${esc(a.nome)}</div>
+        <div class="secundario">${esc(a.servicos.map(s => s.nome).join(' + '))}</div>
+        ${a.observacao ? `<div class="secundario">📝 ${esc(a.observacao)}</div>` : ''}
+      </div>
+      <span class="selo ${a.status}">${ROTULO_STATUS[a.status]}</span>
+    </div>
+    ${seloAlergia(a.alergias)}
+    <div class="acoes">
+      ${ativo ? `<a class="btn whatsapp" href="${linkWhatsApp(a.telefone, mensagemConfirmacao(a))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
+      ${a.status === 'pendente' ? `<button class="btn primario" data-acao="confirmarHorario" data-id="${a.id}">Confirmar</button>` : ''}
+      <button class="btn" data-acao="abrirFicha" data-id="${a.cliente_id}">Ficha</button>
+      ${ativo ? `<button class="btn" data-acao="abrirRemarcar" data-id="${a.id}">Remarcar</button>
+                 <button class="btn perigo" data-acao="abrirCancelarHorario" data-id="${a.id}">Cancelar</button>` : ''}
+    </div>
+  </article>`;
+}
+
+function listaDoDia(iso, lista) {
+  const doDia = lista.filter(a => a.data === iso);
+  const confirmados = doDia.filter(a => a.status === 'confirmado').length;
+  const pendentes = doDia.filter(a => a.status === 'pendente').length;
+  return `<p class="secundario" style="margin:-4px 0 12px">${plural(doDia.length, 'horário')} · ${confirmados} confirmado(s) · ${pendentes} pendente(s)</p>
+    ${doDia.length ? doDia.map(cardHorario).join('') : '<p class="vazio">Nenhum horário.</p>'}`;
+}
+
 function telaAgenda() {
-  return `<p class="vazio">A <strong>Agenda</strong> será construída na próxima parte da Etapa 05.</p>`;
+  const hoje = diaISO(0), amanha = diaISO(1);
+  return `<button class="btn primario bloco" data-acao="abrirNovoHorario">+ Novo horário</button>
+    <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
+    <h2 class="titulo-secao">Amanhã · ${rotuloDia(amanha)}</h2>${listaDoDia(amanha, estado.agenda)}
+    <h2 class="titulo-secao">Ver outro dia</h2>
+    <label class="rotulo" for="diaExtra" style="margin-top:0">Escolha a data</label>
+    <input class="campo" type="date" id="diaExtra" value="${estado.diaExtra}">
+    <div style="margin-top:12px">${estado.diaExtra ? listaDoDia(estado.diaExtra, estado.agendaExtra) : ''}</div>`;
 }
 
 // ---------- Tela: Clientes (RF-08) ----------
@@ -193,12 +277,48 @@ function formularioCliente(c = {}) {
     <label class="rotulo" for="cNome">Nome *</label>
     <input class="campo" id="cNome" value="${esc(c.nome)}" autocomplete="off">
     <label class="rotulo" for="cTel">WhatsApp com DDD *</label>
-    <input class="campo" id="cTel" type="tel" inputmode="tel" placeholder="(XX) 9XXXX-XXXX" value="${esc(c.telefone)}">
+    <input class="campo" id="cTel" type="tel" inputmode="numeric" maxlength="15" placeholder="(XX) 9XXXX-XXXX" value="${esc(formatarTelefone(c.telefone))}">
+    <p class="secundario" style="margin:4px 0 0">Digite só os números, com DDD. A formatação é automática.</p>
     <label class="rotulo" for="cAler">Alergias</label>
     <textarea class="campo" id="cAler" rows="2" placeholder="Ex.: PPD, amônia…" aria-describedby="cAlerDica">${esc(c.alergias)}</textarea>
     <p class="secundario" id="cAlerDica" style="margin:4px 0 0">Usada só para evitar reações no atendimento.</p>
     <label class="rotulo" for="cNotas">Anotações</label>
     <textarea class="campo" id="cNotas" rows="3" placeholder="Preferências, produtos usados…">${esc(c.anotacoes)}</textarea>`;
+}
+
+function camposHorario(a = {}) {
+  const duracoes = [30, 45, 60, 90, 120, 150, 180, 240];
+  const atual = a.duracao_min ?? null;          // duração é opcional (RF-02)
+  if (atual && !duracoes.includes(atual)) duracoes.push(atual);
+  const nomeDuracao = m => m < 60 ? `${m} min` : `${Math.floor(m / 60)}h${m % 60 ? String(m % 60).padStart(2, '0') : ''}`;
+  return `
+    <label class="rotulo" for="hData">Data *</label>
+    <input class="campo" type="date" id="hData" value="${a.data ?? diaISO(0)}">
+    <label class="rotulo" for="hHora">Hora de início *</label>
+    <input class="campo" type="time" id="hHora" step="300" value="${a.hora ?? ''}">
+    <label class="rotulo" for="hDur">Duração estimada</label>
+    <select class="campo" id="hDur" aria-describedby="hDurDica">
+      <option value="" ${atual ? '' : 'selected'}>Não informar</option>
+      ${duracoes.sort((x, y) => x - y).map(m =>
+        `<option value="${m}" ${m === atual ? 'selected' : ''}>${nomeDuracao(m)}</option>`).join('')}</select>
+    <p class="secundario" id="hDurDica" style="margin:4px 0 0">Sem a duração, o sistema só avisa se outra cliente for marcada no mesmo horário de início.</p>`;
+}
+
+function formularioNovoHorario() {
+  if (!estado.clientes.length) {
+    return `<p class="aviso">Cadastre uma cliente primeiro, na aba Clientes.</p>`;
+  }
+  return `
+    <label class="rotulo" for="hCliente">Cliente *</label>
+    <select class="campo" id="hCliente"><option value="">Escolha a cliente</option>
+      ${estado.clientes.map(c => `<option value="${c.id}">${esc(c.nome)}${c.alergias ? ' — ⚠️ tem alergia' : ''}</option>`).join('')}</select>
+    ${camposHorario()}
+    <fieldset style="border:0;padding:0;margin:0">
+      <legend class="rotulo">Serviços *</legend>
+      ${estado.servicos.map(s => `<label class="opcao"><input type="checkbox" name="hServico" value="${s.id}"> ${esc(s.nome)}</label>`).join('')}
+    </fieldset>
+    <label class="rotulo" for="hObs">Observação</label>
+    <input class="campo" id="hObs" autocomplete="off" placeholder="Opcional">`;
 }
 
 function botoesJanela(acaoSalvar, textoSalvar, classe = 'primario') {
@@ -227,6 +347,23 @@ function conteudoJanela() {
         </div>
         <p>Novo estoque: <strong>${t.quantidade_tubos + j.quantidade}</strong></p>${erro}
         ${botoesJanela('salvarEntrada', 'Salvar entrada')}`;
+    }
+    case 'novoHorario':
+      return `<h2>Novo horário</h2>${formularioNovoHorario()}${erro}
+        ${estado.clientes.length ? botoesJanela('salvarNovoHorario', 'Salvar horário') : botoesJanela('fecharJanela', 'Ok')}`;
+    case 'remarcar': {
+      const a = horarioPorId(j.id);
+      return `<h2>Remarcar ${esc(a.nome)}</h2>
+        <p class="secundario">Agora: ${rotuloDia(a.data)} às ${a.hora}. Depois de remarcar, o horário volta para <strong>pendente</strong>.</p>
+        ${camposHorario(a)}${erro}${botoesJanela('salvarRemarcar', 'Salvar novo horário')}`;
+    }
+    case 'cancelarHorario': {
+      const a = horarioPorId(j.id);
+      return `<h2>Cancelar horário?</h2>
+        <p><strong>${esc(a.nome)}</strong> · ${rotuloDia(a.data)} às ${a.hora}</p>
+        <p class="secundario">O horário fica livre para outra cliente.</p>${erro}
+        <div class="acoes"><button class="btn perigo" data-acao="confirmarCancelarHorario">Sim, cancelar</button>
+        <button class="btn" data-acao="fecharJanela">Não</button></div>`;
     }
     case 'novaCliente':
       return `<h2>Nova cliente</h2>${formularioCliente()}${erro}${botoesJanela('salvarNovaCliente', 'Salvar cliente')}`;
@@ -304,11 +441,26 @@ const ordemCliente = (a, b) => a.nome.localeCompare(b.nome, 'pt-BR');
 async function carregarTudo() {
   estado.carregando = true; estado.erroCarregar = ''; desenhar();
   try {
-    [estado.tinturas, estado.clientes] = await Promise.all([api('/tinturas'), api('/clientes')]);
+    [estado.tinturas, estado.clientes, estado.servicos, estado.agenda] = await Promise.all([
+      api('/tinturas'), api('/clientes'), api('/servicos'),
+      api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`)
+    ]);
   } catch (e) {
     estado.erroCarregar = e.message;
   }
   estado.carregando = false; desenhar();
+}
+
+// Recarrega a agenda (hoje, amanhã e o outro dia escolhido)
+async function recarregarAgenda() {
+  estado.agenda = await api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`);
+  if (estado.diaExtra) estado.agendaExtra = await api(`/agenda?de=${estado.diaExtra}&ate=${estado.diaExtra}`);
+}
+
+const horarioPorId = id => [...estado.agenda, ...estado.agendaExtra].find(a => a.id === Number(id));
+
+function dadosHorario() {
+  return { data: valorDe('hData'), hora: valorDe('hHora'), duracao_min: valorDe('hDur') };
 }
 
 async function abrirFicha(id) {
@@ -364,6 +516,50 @@ const acoes = {
     });
   },
 
+  // --- Agenda ---
+  abrirNovoHorario() { estado.janela = { tipo: 'novoHorario' }; desenharJanela(); },
+  abrirRemarcar(id) { estado.janela = { tipo: 'remarcar', id: Number(id) }; desenharJanela(); },
+  abrirCancelarHorario(id) { estado.janela = { tipo: 'cancelarHorario', id: Number(id) }; desenharJanela(); },
+
+  salvarNovoHorario(_, botao) {
+    return salvando(botao, async () => {
+      const servicos = [...document.querySelectorAll('[name=hServico]:checked')].map(c => Number(c.value));
+      const novo = await api('/agenda', { metodo: 'POST', corpo: {
+        cliente_id: valorDe('hCliente'), ...dadosHorario(), servicos, observacao: valorDe('hObs')
+      } });
+      await recarregarAgenda();
+      estado.janela = null; estado.aba = 'agenda'; estado.tela = null; desenhar();
+      avisar(`Horário de ${novo.nome} marcado: ${rotuloDia(novo.data)} às ${novo.hora} (pendente).`);
+    });
+  },
+
+  // RF-04: um toque confirma (RNF-02)
+  confirmarHorario(id, botao) {
+    return salvando(botao, async () => {
+      await api(`/agenda/${id}/status`, { metodo: 'PATCH', corpo: { status: 'confirmado' } });
+      await recarregarAgenda(); desenhar();
+      avisar('Horário confirmado.');
+    });
+  },
+
+  confirmarCancelarHorario(_, botao) {
+    return salvando(botao, async () => {
+      await api(`/agenda/${estado.janela.id}/status`, { metodo: 'PATCH', corpo: { status: 'cancelado' } });
+      await recarregarAgenda();
+      estado.janela = null; desenhar();
+      avisar('Horário cancelado e liberado.');
+    });
+  },
+
+  salvarRemarcar(_, botao) {
+    return salvando(botao, async () => {
+      const a = await api(`/agenda/${estado.janela.id}`, { metodo: 'PUT', corpo: dadosHorario() });
+      await recarregarAgenda();
+      estado.janela = null; desenhar();
+      avisar(`Remarcado para ${rotuloDia(a.data)} às ${a.hora}. Confirme de novo com a cliente.`);
+    });
+  },
+
   // --- Clientes ---
   abrirFicha(id) { abrirFicha(id); },
   abrirNovaCliente() { estado.janela = { tipo: 'novaCliente' }; desenharJanela(); },
@@ -382,6 +578,7 @@ const acoes = {
     return salvando(botao, async () => {
       const editada = await api(`/clientes/${estado.ficha.id}`, { metodo: 'PUT', corpo: dadosCliente() });
       atualizarNaLista(estado.clientes, editada, ordemCliente);
+      await recarregarAgenda();      // a agenda mostra nome, telefone e alergia: atualiza também (D-05)
       estado.janela = null;
       avisar('Ficha atualizada.');
       abrirFicha(editada.id);         // recarrega a ficha com os dados novos
@@ -392,6 +589,7 @@ const acoes = {
       const { id, nome } = estado.ficha;
       await api(`/clientes/${id}`, { metodo: 'DELETE' });
       estado.clientes = estado.clientes.filter(c => c.id !== id);
+      await recarregarAgenda();        // os horários dela também foram apagados
       estado.janela = null; estado.tela = null; estado.ficha = null; estado.aba = 'clientes';
       desenhar();
       avisar(`${nome} e todos os dados dela foram excluídos.`);
@@ -407,8 +605,24 @@ document.addEventListener('click', evento => {
 document.addEventListener('keydown', evento => {
   if (evento.key === 'Escape' && estado.janela) acoes.fecharJanela();
 });
+// Outro dia da agenda: busca os horários da data escolhida
+document.addEventListener('change', async evento => {
+  if (evento.target.id !== 'diaExtra') return;
+  estado.diaExtra = evento.target.value;
+  estado.agendaExtra = [];
+  try {
+    if (estado.diaExtra) estado.agendaExtra = await api(`/agenda?de=${estado.diaExtra}&ate=${estado.diaExtra}`);
+  } catch (e) { avisar(e.message); }
+  desenhar();
+});
+
 // Busca: filtra a lista enquanto a Lucy digita, sem redesenhar a tela toda
 document.addEventListener('input', evento => {
+  // Máscara do telefone. Ao APAGAR não reformata, senão a Lucy
+  // não conseguiria apagar o traço ou o parêntese.
+  if (evento.target.id === 'cTel' && !evento.inputType?.startsWith('delete')) {
+    evento.target.value = formatarTelefone(evento.target.value);
+  }
   if (evento.target.id === 'busca') {
     estado.busca = evento.target.value;
     document.getElementById('listaClientes').innerHTML = listaClientes();

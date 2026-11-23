@@ -110,9 +110,14 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .abas button[aria-current=page]::before{content:'';position:absolute;top:0;left:25%;right:25%;height:3px;background:var(--cor-marca);border-radius:0 0 3px 3px}
 .contagem{position:absolute;top:8px;left:calc(50% + 8px);background:var(--cor-perigo);color:#fff;border-radius:var(--raio-selo);font-size:11px;min-width:18px;height:18px;line-height:18px;padding:0 5px}
 
-/* Janela inferior (modal) */
+/* Janela (modal): EMBAIXO no celular, perto do polegar;
+   CENTRALIZADA em telas a partir de 600 px (computador e tablet) */
 .fundo-janela{position:fixed;inset:0;background:#2a1f2699;display:flex;align-items:flex-end;justify-content:center}
 .janela{background:var(--cor-superficie);width:100%;max-width:var(--largura-max);border-radius:var(--raio-janela) var(--raio-janela) 0 0;padding:20px 16px 24px;max-height:90vh;overflow:auto}
+@media (min-width:600px){
+  .fundo-janela{align-items:center;padding:var(--esp-4)}
+  .janela{border-radius:var(--raio-janela);max-height:85vh;box-shadow:0 12px 40px #0003}
+}
 
 /* Aviso rápido no topo */
 .toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);background:var(--cor-texto);color:#fff;padding:12px 16px;border-radius:var(--raio-controle);font-weight:var(--peso-forte);font-size:var(--texto-sm)}
