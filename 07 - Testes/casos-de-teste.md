@@ -33,6 +33,7 @@
 | D-03 | Agenda | A duração era obrigatória no código, mas o RF-02 diz "opcional" (inconsistência requisito × código) | Revisão manual (eu) | Corrigido (migração 002); teste T-23 |
 | D-05 | Agenda × Ficha | Depois de editar a ficha (telefone, alergia), a agenda continuava com os dados antigos até apertar F5; o botão WhatsApp usava o telefone velho | Teste manual T-18 (eu) | Corrigido: a agenda é recarregada ao salvar a ficha |
 | D-06 | Design System | Um ⚠️ sozinho ao lado do nome da cliente (sem texto) não era entendido — quebrava a regra "ícone nunca sozinho" | Teste manual (eu) | Corrigido: "— ⚠️ tem alergia" |
+| D-07 | RF-10 / RN-09 | Era possível descontar tubos num atendimento sem o serviço Tintura (ex.: "Corte + Escova · Tintura: 7.0 (2 tubos)") | Teste manual (eu) | Corrigido: o Finalizar mostra os serviços feitos e só mostra os tubos com Tintura marcada; o servidor recusa tubos sem Tintura |
 | D-04 | Agenda / WhatsApp | O emoji 💇‍♀️ da mensagem chegou como "�" no WhatsApp: o redirecionamento wa.me → api.whatsapp.com estragou o símbolo | Teste manual T-18 (eu) | Corrigido: mensagem sem emoji; refazer T-18 |
 
 ---
@@ -117,6 +118,8 @@
 | T-52 | RF-18 (mês) | Pelo menos 1 atendimento finalizado este mês, com 1 tubo de 7.0 | Aba **Relatório** → **Mês** | Os números batem com o que foi finalizado (atendimentos, serviços, tubos) | — | ⏳ | |
 | T-53 | RF-18 (períodos) | — | Trocar entre **Dia / Semana / Mês / Ano** e usar ← → | O título muda certo (ex.: semana de segunda a domingo) e os números acompanham | — | ⏳ | |
 | T-54 | RF-18 (imprimir) | — | **Imprimir ou salvar em PDF** → destino "Salvar como PDF" | O PDF sai só com o relatório, sem menu e sem botões | — | ⏳ | |
+| T-55 | RN-09 | Horário de Corte + Escova; tintura 7.0 com estoque | **Finalizar** | Aparecem os serviços marcados (Corte e Escova) e a frase "Sem o serviço Tintura, nenhum tubo é descontado"; ao concluir, o estoque **não** muda | — | ⏳ | |
+| T-56 | RN-09 (mudou na hora) | Horário só de Corte | **Finalizar** → marcar **Tintura** → 1 tubo de 7.0 → Concluir | O estoque de 7.0 baixa 1 e o histórico mostra "Corte + Tintura · 7.0 (1 tubo)" | — | ⏳ | |
 
 ---
 

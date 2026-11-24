@@ -209,3 +209,18 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
   - Abriu as telas num navegador automático e trocou de período com as setas.
   - Gerou a versão de impressão.
 - **Testes:** T-51 a T-54 ficam para eu executar e registrar com print.
+
+## Defeito D-07 — tintura em atendimento sem o serviço Tintura
+
+- **Data:** 23/11/2026
+- **O que eu vi:** no histórico, "28/11/2026 · Corte + Escova · Tintura: 7.0 (2 tubos)". Perguntei: "tintura deveria só aparecer pra quem vai fazer tintura, não?"
+- **Causa:** a janela "Finalizar" mostrava os contadores de tubos para qualquer serviço, e o servidor não conferia.
+- **Correção (RN-09):**
+  - A janela agora mostra os **serviços feitos** com caixinhas, já marcados conforme o agendamento.
+  - Os tubos só aparecem quando **Tintura** está marcada.
+  - O servidor recusa tubos sem o serviço Tintura.
+- **Por que caixinhas, e não só esconder:** a cliente pode marcar corte e decidir pintar na hora. Se os tubos ficassem só escondidos, a Lucy não teria como registrar essa tintura.
+- **Como a IA conferiu:**
+  - No navegador automático: sem Tintura não aparecem tubos; marcando Tintura, aparecem; ao desmarcar, nenhum tubo é enviado; com nenhum serviço marcado, aparece um aviso.
+  - No PostgreSQL: rodou a consulta que verifica se o serviço Tintura foi feito.
+- **Testes:** T-55 e T-56 ficam para eu executar e registrar com print.

@@ -548,6 +548,16 @@ app.post('/api/agenda/:id/finalizar', async (req, res) => {
     if (quantidade > 0) usadas.push({ tinturaId, quantidade });
   }
 
+  // Serviços que foram FEITOS (podem mudar na hora: marcou corte e decidiu pintar).
+  // Se a tela não mandar, valem os serviços do agendamento.
+  let feitos = null;
+  if (req.body?.servicos !== undefined) {
+    if (!Array.isArray(req.body.servicos)) return res.status(400).json({ erro: 'Serviços inválidos.' });
+    feitos = [...new Set(req.body.servicos.map(v => inteiro(v, 1)))];
+    if (feitos.includes(null)) return res.status(400).json({ erro: 'Serviços inválidos.' });
+    if (!feitos.length) return res.status(400).json({ erro: 'Marque pelo menos um serviço feito.' });
+  }
+
   const resultado = await transacao(async conexao => {
     // 1. Trava o horário enquanto finaliza (evita finalizar duas vezes ao mesmo tempo)
     const { rows: [horario] } = await conexao.query(
@@ -564,11 +574,28 @@ app.post('/api/agenda/:id/finalizar', async (req, res) => {
       `INSERT INTO atendimentos (cliente_id, agendamento_id, data) VALUES ($1, $2, $3::date) RETURNING id`,
       [horario.cliente_id, id, horario.data]
     );
-    await conexao.query(
-      `INSERT INTO atendimento_servicos (atendimento_id, servico_id)
-       SELECT $1, servico_id FROM agendamento_servicos WHERE agendamento_id = $2`,
-      [atendimento.id, id]
-    );
+    if (feitos) {
+      await conexao.query(
+        `INSERT INTO atendimento_servicos (atendimento_id, servico_id) SELECT $1, unnest($2::int[])`,
+        [atendimento.id, feitos]
+      );
+    } else {
+      await conexao.query(
+        `INSERT INTO atendimento_servicos (atendimento_id, servico_id)
+         SELECT $1, servico_id FROM agendamento_servicos WHERE agendamento_id = $2`,
+        [atendimento.id, id]
+      );
+    }
+
+    // RN-09: tubo de tintura só é descontado se o serviço Tintura foi feito
+    if (usadas.length) {
+      const { rows: [teve] } = await conexao.query(
+        `SELECT EXISTS (SELECT 1 FROM atendimento_servicos x JOIN servicos s ON s.id = x.servico_id
+                         WHERE x.atendimento_id = $1 AND lower(s.nome) = 'tintura') AS sim`,
+        [atendimento.id]
+      );
+      if (!teve.sim) throw new ErroAmigavel('Para descontar tubos, marque o serviço Tintura.');
+    }
 
     // 3. Baixa o estoque de cada tintura. "quantidade_tubos >= $1" garante que
     //    só baixa se tiver tubo suficiente (RN-03); se não tiver, desfaz tudo.
@@ -736,7 +763,8 @@ const MENSAGENS_DO_BANCO = {
   clientes_nome_check: 'Informe o nome da cliente.',
   uma_cliente_por_vez: 'Já existe cliente nesse horário.',                  // RN-01 (segurança extra)
   agendamentos_cliente_id_fkey: 'Essa cliente não existe mais. Recarregue a página.',
-  agendamento_servicos_servico_id_fkey: 'Serviço inválido. Recarregue a página.'
+  agendamento_servicos_servico_id_fkey: 'Serviço inválido. Recarregue a página.',
+  atendimento_servicos_servico_id_fkey: 'Serviço inválido. Recarregue a página.'
 };
 
 app.use((erro, req, res, next) => {

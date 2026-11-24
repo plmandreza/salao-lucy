@@ -632,11 +632,20 @@ function conteudoJanela() {
             </div>
           </div>`).join('')
         : '<p class="secundario">Nenhuma tintura cadastrada.</p>';
+      // RN-09: os tubos só aparecem quando o serviço Tintura está marcado
+      const temTintura = j.servicos.includes(idTintura());
       return `<h2>Finalizar atendimento</h2>
         ${a.alergias ? `<div class="alerta-alergia" role="alert" style="margin-bottom:12px">⚠️ Alergia: ${esc(a.alergias)}</div>` : ''}
-        <p><strong>${esc(a.nome)}</strong> · ${esc(a.servicos.map(s => s.nome).join(' + '))}</p>
-        <p class="secundario">Quantos tubos de cada tintura foram usados? Deixe 0 se não usou.</p>
-        ${linhas}${erro}${botoesJanela('concluirAtendimento', 'Concluir atendimento')}`;
+        <p><strong>${esc(a.nome)}</strong> · ${rotuloDia(a.data)} às ${a.hora}</p>
+        <fieldset style="border:0;padding:0;margin:0">
+          <legend class="rotulo">Serviços feitos</legend>
+          ${estado.servicos.map(sv => `<label class="opcao"><input type="checkbox" id="fs${sv.id}" data-acao="marcarServicoFeito" data-id="${sv.id}"
+              ${j.servicos.includes(sv.id) ? 'checked' : ''}> ${esc(sv.nome)}</label>`).join('')}
+        </fieldset>
+        ${temTintura
+          ? `<p class="secundario" style="margin-top:12px">Quantos tubos de cada tintura foram usados? Deixe 0 se não usou.</p>${linhas}`
+          : `<p class="secundario" style="margin-top:12px">Sem o serviço Tintura, nenhum tubo é descontado do estoque.</p>`}
+        ${erro}${botoesJanela('concluirAtendimento', 'Concluir atendimento')}`;
     }
     case 'intervalos':
       return `<h2>Intervalos de retorno</h2>
@@ -752,6 +761,8 @@ async function recarregarAgenda() {
   if (estado.diaExtra) estado.agendaExtra = await api(`/agenda?de=${estado.diaExtra}&ate=${estado.diaExtra}`);
 }
 
+// Id do serviço "Tintura" (o único que usa tubos)
+const idTintura = () => estado.servicos.find(s => semAcento(s.nome) === 'tintura')?.id;
 const horarioPorId = id => [...estado.agenda, ...estado.agendaExtra, ...estado.paraFinalizar].find(a => a.id === Number(id));
 
 function dadosHorario() {
@@ -894,7 +905,18 @@ const acoes = {
   },
 
   // --- Finalizar atendimento (RF-10) ---
-  abrirFinalizar(id) { estado.janela = { tipo: 'finalizar', id: Number(id), tubos: {} }; desenharJanela(); },
+  abrirFinalizar(id) {
+    // Começa com os serviços do agendamento; a Lucy pode mudar se fez outra coisa
+    estado.janela = { tipo: 'finalizar', id: Number(id), tubos: {}, servicos: horarioPorId(id).servicos.map(s => s.id) };
+    desenharJanela();
+  },
+  marcarServicoFeito(id, caixa) {
+    const j = estado.janela, n = Number(id);
+    j.servicos = caixa.checked ? [...j.servicos, n] : j.servicos.filter(x => x !== n);
+    j.erro = '';
+    desenharJanela(true);
+    document.getElementById('fs' + n)?.focus();
+  },
   mudarTubo(id, botao) {
     const tubos = estado.janela.tubos;
     tubos[id] = Math.max(0, (tubos[id] || 0) + Number(botao.dataset.passo));
@@ -903,11 +925,14 @@ const acoes = {
   },
   concluirAtendimento(_, botao) {
     return salvando(botao, async () => {
-      const tinturas = Object.entries(estado.janela.tubos)
+      const j = estado.janela;
+      if (!j.servicos.length) throw new Error('Marque pelo menos um serviço feito.');
+      // Sem Tintura marcada, nenhum tubo vai para o servidor (RN-09)
+      const tinturas = !j.servicos.includes(idTintura()) ? [] : Object.entries(j.tubos)
         .filter(([, q]) => q > 0)
         .map(([id, q]) => ({ tintura_id: Number(id), quantidade: q }));
-      const { agendamento, tinturas: estoque } = await api(`/agenda/${estado.janela.id}/finalizar`, {
-        metodo: 'POST', corpo: { tinturas }
+      const { agendamento, tinturas: estoque } = await api(`/agenda/${j.id}/finalizar`, {
+        metodo: 'POST', corpo: { servicos: j.servicos, tinturas }
       });
       estado.tinturas = estoque;                // estoque já baixado (RF-10)
       await recarregarAgenda();
