@@ -224,3 +224,22 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
   - No navegador automático: sem Tintura não aparecem tubos; marcando Tintura, aparecem; ao desmarcar, nenhum tubo é enviado; com nenhum serviço marcado, aparece um aviso.
   - No PostgreSQL: rodou a consulta que verifica se o serviço Tintura foi feito.
 - **Testes:** T-55 e T-56 ficam para eu executar e registrar com print.
+
+## Confirmação e lembrete automáticos pelo WhatsApp — análise
+
+- **Data:** 23/11/2026
+- **O que perguntei:** se a própria cliente pode confirmar pelo WhatsApp e o sistema reconhecer sozinho, e se os lembretes de retorno podem ser automáticos para a Lucy e para a cliente.
+- **O que a IA respondeu, depois de pesquisar os preços atuais da Meta:**
+  - É possível, mas exige o sistema **publicado na internet** e a **API oficial do WhatsApp**.
+  - A API oficial pede verificação da empresa, modelos de mensagem aprovados e autorização das clientes.
+  - Ela é **cobrada por mensagem entregue**.
+  - Ferramentas não oficiais podem fazer o número da Lucy ser bloqueado, então **não foram usadas**.
+  - Caminho intermediário para a versão publicada: um **link de confirmação** na mensagem. A cliente toca no link e o sistema marca sozinho, sem custo de API.
+- **Minha decisão:** deixar a parte automática para a versão publicada e fazer agora o que funciona no computador:
+  - **D-08 / RN-10:** "Finalizar" só a partir do horário marcado, conferido na tela e no servidor.
+  - **"Hora de voltar" no topo da Agenda:** as 3 clientes mais urgentes e "Ver todas".
+- **Como a IA conferiu:** no navegador automático,
+  - o cartão que já passou mostrou "Finalizar";
+  - o de mais tarde hoje e o de daqui a 5 dias não mostraram;
+  - com 4 clientes na hora de voltar, apareceram 3 e "Ver todas (4)", que levou para a aba Clientes.
+- **Testes:** T-57 e T-58 ficam para eu executar e registrar com print.

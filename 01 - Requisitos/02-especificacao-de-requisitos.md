@@ -32,7 +32,7 @@
 | RF-08 | **Buscar** cliente pelo nome. | 🔴 | ✅ |
 | RF-09 | Exibir a ficha da cliente com as **alergias em destaque no topo** e o **histórico** de atendimentos. | 🔴 | ✅ |
 | RF-10 | **Finalizar atendimento**: registrar no histórico a data, o(s) serviço(s) e as tinturas usadas (quantidade de tubos), mudar o status para **concluído** e **baixar o estoque**. | 🔴 | ✅ |
-| RF-11 | Exibir a lista **"Hora de voltar"**: clientes cuja data prevista de retorno está próxima ou já passou, com botão de WhatsApp para lembrete. | 🔴 | ✅ (*"me lembro, nunca passo pra cliente"*) |
+| RF-11 | Exibir a lista **"Hora de voltar"**: clientes cuja data prevista de retorno está próxima ou já passou, com botão de WhatsApp para lembrete. As 3 mais urgentes aparecem também **no topo da Agenda**. | 🔴 | ✅ (*"me lembro, nunca passo pra cliente"*) |
 
 ### Serviços e tinturas
 | ID | Requisito | Prioridade | Situação |
@@ -83,6 +83,7 @@ Cada RNF tem uma **medida** para poder ser testado. "Rápido" ou "seguro" sem n�
 | RN-07 | Telefone com WhatsApp é **obrigatório** no cadastro da cliente. | Marcação é por WhatsApp/telefone | ✅ |
 | RN-08 | Cancelamento: a Lucy pode cancelar a qualquer momento, sem multa nem prazo mínimo. | *"Não tem tolerância aceitável pelo cancelamento"* | ⚠️ significado a confirmar |
 | RN-09 | Tubos de tintura só são descontados se o serviço **Tintura** foi feito. Ao finalizar, a Lucy confirma os **serviços feitos** (podem ser diferentes dos agendados: marcou corte e decidiu pintar). | Teste da Andreza: um atendimento de "Corte + Escova" aparecia no histórico com tubos de tintura | ✅ |
+| RN-10 | Um atendimento só pode ser **finalizado a partir do horário marcado**. Antes disso o botão "Finalizar" não aparece, e o servidor recusa. | Teste da Andreza: um agendamento de 28/11 foi finalizado no dia 23/11 | ✅ |
 
 ---
 
@@ -170,3 +171,4 @@ Liga cada problema ao requisito, à tela, ao código e ao teste. As colunas **C�
 | 0.5 | 23/11/2026 | **Login: "Mostrar/Ocultar" senha e "Esqueci minha senha"; janelas com "×" para fechar; botão "Novo horário" passa a se chamar "Novo agendamento"** (RF-01, RF-02, RNF-03) | Pedido da Andreza ao usar o sistema. A recuperação **não envia e-mail**: o sistema roda só no computador (implantação local, sem servidor de e-mail) e a senha é guardada com hash, então ninguém consegue lê-la. A tela explica isso e mostra o comando que cria uma senha nova. Recuperação por e-mail fica para quando o sistema for publicado. "Novo agendamento" descreve melhor a ação; não foi usado "atendimento" porque no sistema essa palavra já significa o serviço **feito** (Finalizar atendimento, histórico). | Andreza |
 | 0.6 | 23/11/2026 | **RF-03 ampliado (próximos agendamentos) e novo RF-18 (relatório)** | Pedido da Andreza: ver todos os agendados sem procurar data por data, e ter um resumo do movimento do salão. O relatório conta só o que foi **finalizado** no sistema e **não mostra valores em dinheiro**, porque o sistema não registra preços (isso pode entrar numa próxima versão). | Andreza |
 | 0.7 | 23/11/2026 | **Nova RN-09: tintura só com o serviço Tintura**; ao finalizar, a Lucy confirma os serviços feitos (RF-10) | A Andreza viu no histórico "Corte + Escova · Tintura: 7.0 (2 tubos)", o que não faz sentido. A janela "Finalizar" agora mostra os serviços com caixinhas (já marcados conforme o agendamento) e só mostra os tubos quando **Tintura** está marcada. O servidor também recusa tubos sem o serviço Tintura. | Andreza |
+| 0.8 | 23/11/2026 | **Nova RN-10 (finalizar só a partir do horário)** e **"Hora de voltar" também no topo da Agenda** (RF-11) | 1) Um agendamento futuro podia ser finalizado, o que bagunçava o histórico, o estoque, o "Hora de voltar" e o relatório. 2) A Lucy olha a **Agenda** de manhã e no almoço; a lista "Hora de voltar" ficava só na aba Clientes e podia ser esquecida. A Agenda agora mostra as 3 clientes mais urgentes e o botão "Ver todas". A confirmação automática e o lembrete automático pelo WhatsApp foram analisados e ficaram para a versão publicada, porque exigem a API oficial do WhatsApp (paga por mensagem e com autorização das clientes). | Andreza |

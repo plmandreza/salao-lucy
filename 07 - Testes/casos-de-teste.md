@@ -34,6 +34,7 @@
 | D-05 | Agenda × Ficha | Depois de editar a ficha (telefone, alergia), a agenda continuava com os dados antigos até apertar F5; o botão WhatsApp usava o telefone velho | Teste manual T-18 (eu) | Corrigido: a agenda é recarregada ao salvar a ficha |
 | D-06 | Design System | Um ⚠️ sozinho ao lado do nome da cliente (sem texto) não era entendido — quebrava a regra "ícone nunca sozinho" | Teste manual (eu) | Corrigido: "— ⚠️ tem alergia" |
 | D-07 | RF-10 / RN-09 | Era possível descontar tubos num atendimento sem o serviço Tintura (ex.: "Corte + Escova · Tintura: 7.0 (2 tubos)") | Teste manual (eu) | Corrigido: o Finalizar mostra os serviços feitos e só mostra os tubos com Tintura marcada; o servidor recusa tubos sem Tintura |
+| D-08 | RF-10 / RN-10 | Era possível finalizar um agendamento futuro (histórico mostrava 28/11 no dia 23/11) | Teste manual (eu) | Corrigido: "Finalizar" só aparece a partir do horário marcado e o servidor recusa antes disso |
 | D-04 | Agenda / WhatsApp | O emoji 💇‍♀️ da mensagem chegou como "�" no WhatsApp: o redirecionamento wa.me → api.whatsapp.com estragou o símbolo | Teste manual T-18 (eu) | Corrigido: mensagem sem emoji; refazer T-18 |
 
 ---
@@ -120,6 +121,8 @@
 | T-54 | RF-18 (imprimir) | — | **Imprimir ou salvar em PDF** → destino "Salvar como PDF" | O PDF sai só com o relatório, sem menu e sem botões | — | ⏳ | |
 | T-55 | RN-09 | Horário de Corte + Escova; tintura 7.0 com estoque | **Finalizar** | Aparecem os serviços marcados (Corte e Escova) e a frase "Sem o serviço Tintura, nenhum tubo é descontado"; ao concluir, o estoque **não** muda | — | ⏳ | |
 | T-56 | RN-09 (mudou na hora) | Horário só de Corte | **Finalizar** → marcar **Tintura** → 1 tubo de 7.0 → Concluir | O estoque de 7.0 baixa 1 e o histórico mostra "Corte + Tintura · 7.0 (1 tubo)" | — | ⏳ | |
+| T-57 | RN-10 | Um agendamento daqui a 2 dias e outro hoje, já passado | Olhar os cartões na Agenda | O de daqui a 2 dias **não** tem "Finalizar"; o que já passou tem | — | ⏳ | |
+| T-58 | RF-11 (topo da Agenda) | Pelo menos 1 cliente na "Hora de voltar" | Abrir a Agenda | Aparece "Hora de voltar" abaixo do resumo do dia, com até 3 clientes; com mais de 3, o botão "Ver todas" leva para a aba Clientes | — | ⏳ | |
 
 ---
 

@@ -548,6 +548,13 @@ app.post('/api/agenda/:id/finalizar', async (req, res) => {
     if (quantidade > 0) usadas.push({ tinturaId, quantidade });
   }
 
+  // RN-10: só finaliza a partir do horário marcado. A hora vem da tela
+  // (fuso horário do aparelho), como em "Para finalizar".
+  const agora = texto(req.body?.agora);
+  if (!/^\d{4}-\d{2}-\d{2} ([01]\d|2[0-3]):[0-5]\d$/.test(agora)) {
+    return res.status(400).json({ erro: 'Data e hora inválidas. Recarregue a página.' });
+  }
+
   // Serviços que foram FEITOS (podem mudar na hora: marcou corte e decidiu pintar).
   // Se a tela não mandar, valem os serviços do agendamento.
   let feitos = null;
@@ -561,12 +568,16 @@ app.post('/api/agenda/:id/finalizar', async (req, res) => {
   const resultado = await transacao(async conexao => {
     // 1. Trava o horário enquanto finaliza (evita finalizar duas vezes ao mesmo tempo)
     const { rows: [horario] } = await conexao.query(
-      `SELECT id, cliente_id, to_char(inicio, 'YYYY-MM-DD') AS data, status
-         FROM agendamentos WHERE id = $1 FOR UPDATE`, [id]
+      `SELECT id, cliente_id, to_char(inicio, 'YYYY-MM-DD') AS data, status,
+              inicio > $2::timestamp AS no_futuro
+         FROM agendamentos WHERE id = $1 FOR UPDATE`, [id, agora]
     );
     if (!horario) throw new ErroAmigavel('Horário não encontrado.', 404);
     if (!['pendente', 'confirmado'].includes(horario.status)) {
       throw new ErroAmigavel('Esse horário já foi finalizado ou cancelado.');
+    }
+    if (horario.no_futuro) {
+      throw new ErroAmigavel('Esse horário ainda não chegou. Dá para finalizar a partir do horário marcado.');
     }
 
     // 2. Cria o atendimento no histórico da cliente, com os serviços do horário

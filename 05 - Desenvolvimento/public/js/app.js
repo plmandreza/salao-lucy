@@ -191,6 +191,9 @@ const seloAlergia = alergias => alergias
 // ---------- Tela: Agenda (RF-02 a RF-06) ----------
 const ROTULO_STATUS = { pendente: 'Pendente', confirmado: 'Confirmado', concluido: 'Concluído' };
 
+// RN-10: o horário já chegou? (o "Finalizar" só aparece a partir dele)
+const jaComecou = a => `${a.data} ${a.hora}` <= agoraLocal();
+
 function cardHorario(a) {
   const ativo = a.status === 'pendente' || a.status === 'confirmado';
   return `<article class="card">
@@ -208,7 +211,7 @@ function cardHorario(a) {
     <div class="acoes">
       ${ativo ? `<a class="btn whatsapp" href="${linkWhatsApp(a.telefone, mensagemConfirmacao(a))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}
       ${a.status === 'pendente' ? `<button class="btn primario" data-acao="confirmarHorario" data-id="${a.id}">Confirmar</button>` : ''}
-      ${ativo ? `<button class="btn" data-acao="abrirFinalizar" data-id="${a.id}">Finalizar</button>` : ''}
+      ${ativo && jaComecou(a) ? `<button class="btn" data-acao="abrirFinalizar" data-id="${a.id}">Finalizar</button>` : ''}
       <button class="btn" data-acao="abrirFicha" data-id="${a.cliente_id}">Ficha</button>
       ${ativo ? `<button class="btn" data-acao="abrirRemarcar" data-id="${a.id}">Remarcar</button>
                  <button class="btn perigo" data-acao="abrirCancelarHorario" data-id="${a.id}">Cancelar</button>` : ''}
@@ -281,6 +284,7 @@ function secaoParaFinalizar() {
 function telaAgenda() {
   const hoje = diaISO(0), amanha = diaISO(1);
   return `${resumoDoDia(hoje)}
+    ${secaoHoraDeVoltarAgenda()}
     ${secaoParaFinalizar()}
     <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo agendamento</button>
     <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
@@ -418,10 +422,21 @@ function telaClientes() {
     <div id="listaClientes" style="margin-top:12px">${listaClientes()}</div>`;
 }
 
+// Atalho no topo da Agenda: as 3 mais urgentes (a lista já vem em ordem de urgência).
+// Se ninguém estiver na hora de voltar, não mostra nada.
+function secaoHoraDeVoltarAgenda() {
+  const total = estado.horaDeVoltar.length;
+  if (!total) return '';
+  return `<h2 class="titulo-secao">Hora de voltar (${total})</h2>
+    <p class="secundario" style="margin:-4px 0 12px">Clientes para lembrar de marcar de novo.</p>
+    ${listaHoraDeVoltar(3)}
+    ${total > 3 ? `<button class="btn bloco" data-acao="aba" data-id="clientes">Ver todas (${total})</button>` : ''}`;
+}
+
 // RF-11 / RN-05: quem está perto ou passou da data de voltar
-function listaHoraDeVoltar() {
+function listaHoraDeVoltar(limite = Infinity) {
   if (!estado.horaDeVoltar.length) return `<p class="vazio">Ninguém para chamar agora.</p>`;
-  return estado.horaDeVoltar.map(v => {
+  return estado.horaDeVoltar.slice(0, limite).map(v => {
     const prazo = v.faltam_dias < 0
       ? `<strong style="color:var(--cor-perigo)">atrasada há ${plural(-v.faltam_dias, 'dia')}</strong>`
       : v.faltam_dias === 0 ? '<strong>é hoje</strong>' : `em ${plural(v.faltam_dias, 'dia')}`;
@@ -932,7 +947,7 @@ const acoes = {
         .filter(([, q]) => q > 0)
         .map(([id, q]) => ({ tintura_id: Number(id), quantidade: q }));
       const { agendamento, tinturas: estoque } = await api(`/agenda/${j.id}/finalizar`, {
-        metodo: 'POST', corpo: { servicos: j.servicos, tinturas }
+        metodo: 'POST', corpo: { servicos: j.servicos, tinturas, agora: agoraLocal() }
       });
       estado.tinturas = estoque;                // estoque já baixado (RF-10)
       await recarregarAgenda();
