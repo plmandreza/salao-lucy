@@ -31,3 +31,32 @@
 .abas{z-index:10}
 /* Link com cara de botão (ex.: WhatsApp) */
 a.btn{display:inline-flex;align-items:center;text-decoration:none}
+
+/* Menu de baixo com 4 abas */
+.abas{grid-template-columns:repeat(4,1fr)}
+/* Agenda: dia dentro de "Próximos agendamentos" */
+.dia-proximo{font-size:var(--texto-md);color:var(--cor-marca-escura);margin:16px 0 8px}
+/* Relatório (RF-18) */
+.seletor-periodo{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--esp-2)}
+.seletor-periodo .btn{padding:10px 4px}
+.navegar-periodo{display:flex;align-items:center;justify-content:space-between;gap:var(--esp-2);margin:var(--esp-3) 0 var(--esp-4)}
+.navegar-periodo strong{font-size:var(--texto-lg);text-align:center;color:var(--cor-marca-escura)}
+.navegar-periodo .btn{min-width:var(--toque-min);font-size:20px}
+.grade-numeros{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--esp-2)}
+.numero-relatorio{background:var(--cor-superficie);border:1px solid var(--cor-linha);border-radius:var(--raio-card);padding:var(--esp-3)}
+.numero-relatorio strong{display:block;font-size:28px;color:var(--cor-marca)}
+.numero-relatorio span{font-size:var(--texto-sm);color:var(--cor-texto-suave)}
+.lista-relatorio{list-style:none;margin:0;padding:0;background:var(--cor-superficie);border:1px solid var(--cor-linha);border-radius:var(--raio-card)}
+.lista-relatorio li{display:flex;align-items:center;justify-content:space-between;gap:var(--esp-3);padding:10px var(--esp-3);border-bottom:1px solid var(--cor-linha)}
+.lista-relatorio li:last-child{border-bottom:0}
+.barra{flex:1;height:10px;background:var(--cor-marca-suave);border-radius:5px;overflow:hidden}
+.barra span{display:block;height:100%;background:var(--cor-marca)}
+.so-imprimir{display:none}
+@media print{
+  body,.app{background:#fff}
+  .app{max-width:none;padding:0}
+  .topo,.abas,.nao-imprimir,#toast{display:none!important}
+  .so-imprimir{display:block;font-size:20px;margin:0 0 16px}
+  .numero-relatorio,.lista-relatorio li{break-inside:avoid}
+  .barra,.barra span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}

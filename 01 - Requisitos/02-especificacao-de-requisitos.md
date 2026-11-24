@@ -20,7 +20,7 @@
 | ID | Requisito | Prioridade | Situação |
 |---|---|---|---|
 | RF-02 | Cadastrar agendamento com **cliente, data, hora de início, serviço(s)**, duração estimada (opcional) e observação. Status inicial: **pendente**. | 🔴 | ✅ |
-| RF-03 | Exibir a agenda de **hoje e amanhã**, em ordem de horário, com o status de cada agendamento. | 🔴 | ✅ |
+| RF-03 | Exibir a agenda de **hoje e amanhã** e, logo abaixo, **todos os próximos agendamentos** (até 1 ano), separados por dia, em ordem de horário, com o status de cada agendamento. | 🔴 | ✅ |
 | RF-04 | Alterar o status do agendamento para **confirmado** ou **cancelado**. | 🔴 | ✅ prioridade nº 1 da Lucy |
 | RF-05 | Gerar um botão que abre o **WhatsApp da cliente** com a mensagem de confirmação já escrita. | 🔴 | ✅ (WhatsApp comum) |
 | RF-06 | **Remarcar** um agendamento (alterar data e hora). | 🟡 | ✅ |
@@ -47,6 +47,7 @@
 |---|---|---|---|
 | RF-16 | Exibir a lista **"Para finalizar"**: atendimentos que já começaram e não foram finalizados nem cancelados, **de qualquer dia**, para a Lucy registrar **no fechamento do salão**, a partir das anotações no papel. | 🔴 | ✅ (*"anotar no papel e passar depois"*) |
 | RF-17 | Exibir um **resumo do dia** no topo da agenda com as **próximas clientes a partir de agora** e **quem delas tem alergia**: de manhã mostra o dia todo; no almoço, só a tarde. | 🔴 | ✅ (*"antes de abrir o salão e na hora do almoço"*) |
+| RF-18 | Gerar um **relatório** por **dia, semana, mês ou ano**, com: atendimentos finalizados, clientes atendidas, clientes novas, cancelados/não vieram, horários em aberto, serviços feitos, tubos usados por tintura e atendimentos por dia (ou por mês, no ano). Deve poder ser **impresso ou salvo em PDF**. | 🟡 | ✅ (pedido da Andreza) |
 
 ---
 
@@ -166,3 +167,4 @@ Liga cada problema ao requisito, à tela, ao código e ao teste. As colunas **C�
 | 0.3 | 23/11/2026 | **Duração do agendamento passa a ser realmente opcional** (RF-02) e a RN-01 explica o que acontece sem duração | No teste, percebi que o sistema **exigia** a duração, mas o RF-02 já dizia "duração estimada (opcional)": uma **inconsistência entre requisito e código**. Corrigido no banco (migração `002-duracao-opcional.sql`), no servidor e na tela. Limitação aceita: sem duração, o sistema só bloqueia outra cliente no **mesmo horário de início**. | [Seu nome] |
 | 0.4 | 23/11/2026 | **Acrescentados RF-16 (Para finalizar) e RF-17 (resumo do dia)** | A Lucy informou que **não usa o celular durante os atendimentos**: usa **de manhã e no almoço** para ver quem vem e quem tem alergia, e **no fechamento** passa os tubos que anotou no papel. A hipótese H1 da visão caiu. O sistema foi pensado para uso "na hora", então foi preciso permitir finalizar depois (de qualquer dia) e mostrar as alergias das próximas clientes. | Lucy + [Seu nome] |
 | 0.5 | 23/11/2026 | **Login: "Mostrar/Ocultar" senha e "Esqueci minha senha"; janelas com "×" para fechar; botão "Novo horário" passa a se chamar "Novo agendamento"** (RF-01, RF-02, RNF-03) | Pedido da Andreza ao usar o sistema. A recuperação **não envia e-mail**: o sistema roda só no computador (implantação local, sem servidor de e-mail) e a senha é guardada com hash, então ninguém consegue lê-la. A tela explica isso e mostra o comando que cria uma senha nova. Recuperação por e-mail fica para quando o sistema for publicado. "Novo agendamento" descreve melhor a ação; não foi usado "atendimento" porque no sistema essa palavra já significa o serviço **feito** (Finalizar atendimento, histórico). | Andreza |
+| 0.6 | 23/11/2026 | **RF-03 ampliado (próximos agendamentos) e novo RF-18 (relatório)** | Pedido da Andreza: ver todos os agendados sem procurar data por data, e ter um resumo do movimento do salão. O relatório conta só o que foi **finalizado** no sistema e **não mostra valores em dinheiro**, porque o sistema não registra preços (isso pode entrar numa próxima versão). | Andreza |

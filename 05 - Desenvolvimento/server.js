@@ -635,6 +635,75 @@ app.get('/api/hora-de-voltar', async (req, res) => {
   res.json(rows);
 });
 
+// =========================================================
+// RELATÓRIO — RF-18
+// Resumo de um período (dia, semana, mês ou ano). A tela calcula
+// o início e o fim do período e manda as duas datas.
+// "fuso" = diferença do aparelho para o UTC, em minutos (Brasília = -180),
+// para contar as clientes cadastradas no dia certo.
+// =========================================================
+app.get('/api/relatorio', async (req, res) => {
+  const de = texto(req.query.de), ate = texto(req.query.ate);
+  const fuso = Number.isInteger(Number(req.query.fuso)) ? Number(req.query.fuso) : -180;
+  if (!FORMATO_DATA.test(de) || !FORMATO_DATA.test(ate) || de > ate || fuso < -720 || fuso > 840) {
+    return res.status(400).json({ erro: 'Período inválido.' });
+  }
+  const dias = (new Date(ate) - new Date(de)) / 86400000;
+  if (!(dias >= 0 && dias <= 366)) return res.status(400).json({ erro: 'O período pode ter no máximo 1 ano.' });
+
+  const [atendimentos, servicos, tinturas, agendamentos, novas, porDia] = await Promise.all([
+    banco.query(
+      `SELECT count(*)::int AS total, count(DISTINCT cliente_id)::int AS clientes
+         FROM atendimentos WHERE data BETWEEN $1 AND $2`, [de, ate]),
+    banco.query(
+      `SELECT s.nome, count(*)::int AS quantidade
+         FROM atendimentos a
+         JOIN atendimento_servicos x ON x.atendimento_id = a.id
+         JOIN servicos s ON s.id = x.servico_id
+        WHERE a.data BETWEEN $1 AND $2
+        GROUP BY s.nome ORDER BY quantidade DESC, s.nome`, [de, ate]),
+    banco.query(
+      `SELECT t.codigo, t.marca, sum(x.quantidade_tubos)::int AS tubos
+         FROM atendimentos a
+         JOIN atendimento_tinturas x ON x.atendimento_id = a.id
+         JOIN tinturas t ON t.id = x.tintura_id
+        WHERE a.data BETWEEN $1 AND $2
+        GROUP BY t.id ORDER BY tubos DESC, t.codigo`, [de, ate]),
+    banco.query(
+      `SELECT status, count(*)::int AS quantidade
+         FROM agendamentos
+        WHERE inicio >= $1::date AND inicio < $2::date + 1
+        GROUP BY status`, [de, ate]),
+    banco.query(
+      `SELECT count(*)::int AS total FROM clientes
+        WHERE ((criado_em AT TIME ZONE 'UTC') + make_interval(mins => $3))::date BETWEEN $1 AND $2`,
+      [de, ate, fuso]),
+    // Período curto (até 31 dias): por dia. Período longo (ano): por mês.
+    banco.query(
+      dias <= 31
+        ? `SELECT to_char(data, 'YYYY-MM-DD') AS chave, count(*)::int AS quantidade
+             FROM atendimentos WHERE data BETWEEN $1 AND $2 GROUP BY data ORDER BY data`
+        : `SELECT to_char(data, 'YYYY-MM') AS chave, count(*)::int AS quantidade
+             FROM atendimentos WHERE data BETWEEN $1 AND $2 GROUP BY 1 ORDER BY 1`,
+      [de, ate])
+  ]);
+
+  const status = Object.fromEntries(agendamentos.rows.map(r => [r.status, r.quantidade]));
+  res.json({
+    de, ate,
+    atendimentos: atendimentos.rows[0].total,
+    clientesAtendidas: atendimentos.rows[0].clientes,
+    novasClientes: novas.rows[0].total,
+    cancelados: status.cancelado || 0,
+    emAberto: (status.pendente || 0) + (status.confirmado || 0),
+    servicos: servicos.rows,
+    tinturas: tinturas.rows,
+    totalTubos: tinturas.rows.reduce((soma, t) => soma + t.tubos, 0),
+    agrupadoPor: dias <= 31 ? 'dia' : 'mes',
+    porPeriodo: porDia.rows
+  });
+});
+
 // Ajustar o intervalo de retorno de um serviço (RF-12)
 app.put('/api/servicos/:id', async (req, res) => {
   const id = inteiro(req.params.id, 1);

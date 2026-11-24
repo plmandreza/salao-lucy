@@ -190,3 +190,22 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Decisão sobre a recuperação:** sem envio de e-mail, porque o sistema roda só no computador e não tem servidor de e-mail. Como a senha é guardada com **hash**, nem o sistema consegue mostrar a antiga: a tela explica isso e mostra o comando `criar-usuario`, que cria uma senha nova. A recuperação por e-mail ficou para a versão publicada.
 - **Como a IA conferiu:** abriu as telas num navegador automático (celular e computador), mostrou e ocultou a senha, entrou e saiu da recuperação e fechou uma janela pelo ×. Os testes T-48 a T-50 ficam para eu executar e registrar com print.
 - **Ajuste de nome (pedido meu):** "+ Novo horário" virou **"+ Novo agendamento"** (botão, título da janela e "Salvar agendamento"). Não usei "atendimento" porque no sistema essa palavra é o serviço já feito ("Finalizar atendimento", histórico); assim cada palavra tem um só significado. O mockup (Etapa 03) ficou como estava, como registro da versão antiga.
+
+## Melhoria pedida depois do uso — próximos agendamentos e relatório
+
+- **Data:** 23/11/2026
+- **O que pedi:** "mostrar nessa página todos os agendados, sem depender de ficar procurando data; produzir um relatório que pode ser diário, semanal, mensal ou anual".
+- **O que a IA fez:**
+  - Agenda: a seção **Próximos agendamentos** lista tudo depois de amanhã (até 1 ano), por dia. O "Ver outro dia" continuou, para datas passadas.
+  - Relatório: nova rota `GET /api/relatorio` e uma 4ª aba **Relatório**, com Dia/Semana/Mês/Ano, setas ← → e "Imprimir ou salvar em PDF".
+- **Decisões:**
+  - O relatório conta só atendimentos **finalizados**.
+  - Não mostra dinheiro, porque o sistema não guarda preços.
+  - A semana vai de segunda a domingo.
+  - O período pode ter no máximo 1 ano.
+  - A tela manda o fuso horário do aparelho, para uma cliente cadastrada às 23h contar no dia certo.
+- **Como a IA conferiu:**
+  - Rodou as consultas num PostgreSQL 16 com dados de exemplo. Uma cliente cadastrada às 23h30 de 23/11 contou no dia 23, e não no 24.
+  - Abriu as telas num navegador automático e trocou de período com as setas.
+  - Gerou a versão de impressão.
+- **Testes:** T-51 a T-54 ficam para eu executar e registrar com print.

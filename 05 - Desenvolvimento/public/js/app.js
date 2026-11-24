@@ -115,7 +115,9 @@ const estado = {
   busca: '',
   ficha: null,          // ficha aberta (com histórico)
   janela: null,         // janela aberta: { tipo, ... } ou null
-  recuperarSenha: false // true = a tela de login mostra "Esqueceu a senha?"
+  recuperarSenha: false, // true = a tela de login mostra "Esqueceu a senha?"
+  // RF-18: tipo = dia | semana | mes | ano · ref = um dia qualquer dentro do período
+  relatorio: { tipo: 'mes', ref: null, dados: null, carregando: false, erro: '' }
 };
 
 function avisar(mensagem) {
@@ -179,7 +181,7 @@ function abas() {
       ${contagem ? `<span class="contagem" aria-label="${contagem} avisos">${contagem}</span>` : ''}
     </button>`;
   return `<nav class="abas" aria-label="Menu principal">
-    ${botao('agenda', '📅', 'Agenda', estado.paraFinalizar.length)}${botao('clientes', '👩', 'Clientes', estado.horaDeVoltar.length)}${botao('tinturas', '🎨', 'Tinturas', baixas)}
+    ${botao('agenda', '📅', 'Agenda', estado.paraFinalizar.length)}${botao('clientes', '👩', 'Clientes', estado.horaDeVoltar.length)}${botao('tinturas', '🎨', 'Tinturas', baixas)}${botao('relatorio', '📊', 'Relatório', 0)}
   </nav>`;
 }
 
@@ -283,10 +285,125 @@ function telaAgenda() {
     <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo agendamento</button>
     <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
     <h2 class="titulo-secao">Amanhã · ${rotuloDia(amanha)}</h2>${listaDoDia(amanha, estado.agenda)}
+    ${secaoProximos(amanha)}
     <h2 class="titulo-secao">Ver outro dia</h2>
     <label class="rotulo" for="diaExtra" style="margin-top:0">Escolha a data</label>
     <input class="campo" type="date" id="diaExtra" value="${estado.diaExtra}">
     <div style="margin-top:12px">${estado.diaExtra ? listaDoDia(estado.diaExtra, estado.agendaExtra) : ''}</div>`;
+}
+
+// Todos os agendamentos depois de amanhã, separados por dia (até 1 ano)
+function secaoProximos(amanha) {
+  const depois = estado.agenda.filter(a => a.data > amanha);
+  const anoAtual = diaISO(0).slice(0, 4);
+  const dias = [...new Set(depois.map(a => a.data))];
+  return `<h2 class="titulo-secao">Próximos agendamentos (${depois.length})</h2>
+    ${dias.length ? dias.map(d => `
+      <h3 class="dia-proximo">${rotuloDia(d)}${d.slice(0, 4) !== anoAtual ? '/' + d.slice(0, 4) : ''}</h3>
+      ${depois.filter(a => a.data === d).map(cardHorario).join('')}`).join('')
+    : '<p class="vazio">Nenhum agendamento depois de amanhã.</p>'}`;
+}
+
+// ---------- Tela: Relatório (RF-18) ----------
+const MESES = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho',
+               'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+const isoDe = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+// Primeiro e último dia do período que contém "ref"
+function periodoRelatorio(tipo, ref) {
+  const d = new Date(ref + 'T12:00');
+  if (tipo === 'dia') return [ref, ref];
+  if (tipo === 'semana') {                                   // segunda a domingo
+    const inicio = new Date(d); inicio.setDate(d.getDate() - (d.getDay() + 6) % 7);
+    const fim = new Date(inicio); fim.setDate(inicio.getDate() + 6);
+    return [isoDe(inicio), isoDe(fim)];
+  }
+  if (tipo === 'mes') return [isoDe(new Date(d.getFullYear(), d.getMonth(), 1)), isoDe(new Date(d.getFullYear(), d.getMonth() + 1, 0))];
+  return [`${d.getFullYear()}-01-01`, `${d.getFullYear()}-12-31`];
+}
+
+function tituloPeriodo(tipo, de, ate) {
+  const [ano, mes] = de.split('-');
+  if (tipo === 'dia') return `${rotuloDia(de)}/${ano}`;
+  if (tipo === 'semana') return `${dataBR(de).slice(0, 5)} a ${dataBR(ate)}`;
+  if (tipo === 'mes') return `${MESES[Number(mes) - 1]} de ${ano}`;
+  return ano;
+}
+
+function telaRelatorio() {
+  const r = estado.relatorio;
+  const [de, ate] = periodoRelatorio(r.tipo, r.ref);
+  const tipos = [['dia', 'Dia'], ['semana', 'Semana'], ['mes', 'Mês'], ['ano', 'Ano']];
+  const nomeTipo = { dia: 'dia', semana: 'semana', mes: 'mês', ano: 'ano' }[r.tipo];
+
+  let corpo;
+  if (r.carregando && !r.dados) corpo = `<p class="carregando">Carregando…</p>`;
+  else if (r.erro) corpo = `<p class="erro">${esc(r.erro)}</p>`;
+  else if (r.dados) corpo = conteudoRelatorio(r.dados);
+  else corpo = '';
+
+  return `<div class="nao-imprimir">
+      <div class="seletor-periodo" role="group" aria-label="Tipo de relatório">
+        ${tipos.map(([id, nome]) => `<button class="btn ${r.tipo === id ? 'primario' : ''}" aria-pressed="${r.tipo === id}"
+            data-acao="tipoRelatorio" data-id="${id}">${nome}</button>`).join('')}
+      </div>
+      <div class="navegar-periodo">
+        <button class="btn" data-acao="moverRelatorio" data-id="-1" aria-label="${nomeTipo} anterior">←</button>
+        <strong aria-live="polite">${tituloPeriodo(r.tipo, de, ate)}</strong>
+        <button class="btn" data-acao="moverRelatorio" data-id="1" aria-label="Próximo ${nomeTipo}">→</button>
+      </div>
+    </div>
+    <h2 class="so-imprimir">Lucy Cabeleireira · Relatório · ${tituloPeriodo(r.tipo, de, ate)}</h2>
+    ${corpo}
+    ${r.dados ? `<button class="btn bloco nao-imprimir" style="margin-top:16px" data-acao="imprimirRelatorio">Imprimir ou salvar em PDF</button>` : ''}`;
+}
+
+function conteudoRelatorio(d) {
+  const numero = (valor, rotulo) => `<div class="numero-relatorio"><strong>${valor}</strong><span>${rotulo}</span></div>`;
+  const lista = (itens, vazio) => itens.length
+    ? `<ul class="lista-relatorio">${itens.join('')}</ul>` : `<p class="vazio">${vazio}</p>`;
+
+  const maior = Math.max(1, ...d.porPeriodo.map(p => p.quantidade));
+  const rotulo = chave => d.agrupadoPor === 'dia' ? rotuloDia(chave) : MESES[Number(chave.slice(5)) - 1];
+
+  return `<div class="grade-numeros">
+      ${numero(d.atendimentos, d.atendimentos === 1 ? 'atendimento finalizado' : 'atendimentos finalizados')}
+      ${numero(d.clientesAtendidas, d.clientesAtendidas === 1 ? 'cliente atendida' : 'clientes atendidas')}
+      ${numero(d.totalTubos, d.totalTubos === 1 ? 'tubo de tintura usado' : 'tubos de tintura usados')}
+      ${numero(d.novasClientes, d.novasClientes === 1 ? 'cliente nova cadastrada' : 'clientes novas cadastradas')}
+      ${numero(d.cancelados, 'cancelados ou não vieram')}
+      ${numero(d.emAberto, 'ainda marcados ou sem finalizar')}
+    </div>
+    <h2 class="titulo-secao">Serviços feitos</h2>
+    ${lista(d.servicos.map(s => `<li><span>${esc(s.nome)}</span><strong>${s.quantidade}</strong></li>`), 'Nenhum serviço finalizado neste período.')}
+    <h2 class="titulo-secao">Tinturas usadas</h2>
+    ${lista(d.tinturas.map(t => `<li><span>${esc(t.codigo)}${t.marca ? ` <span class="secundario">${esc(t.marca)}</span>` : ''}</span><strong>${plural(t.tubos, 'tubo')}</strong></li>`), 'Nenhuma tintura usada neste período.')}
+    ${d.porPeriodo.length > 1 ? `
+      <h2 class="titulo-secao">Atendimentos por ${d.agrupadoPor === 'dia' ? 'dia' : 'mês'}</h2>
+      <ul class="lista-relatorio">${d.porPeriodo.map(p => `
+        <li><span style="min-width:120px">${rotulo(p.chave)}</span>
+          <span class="barra" aria-hidden="true"><span style="width:${Math.round(p.quantidade / maior * 100)}%"></span></span>
+          <strong>${p.quantidade}</strong></li>`).join('')}</ul>` : ''}
+    <p class="secundario" style="margin-top:16px">Conta só os atendimentos <strong>finalizados</strong> no sistema. Valores em dinheiro não são registrados.</p>`;
+}
+
+let pedidoRelatorio = 0;     // ignora respostas antigas se a Lucy trocar de período rápido
+async function carregarRelatorio() {
+  const r = estado.relatorio;
+  if (!r.ref) r.ref = diaISO(0);
+  const [de, ate] = periodoRelatorio(r.tipo, r.ref);
+  const meu = ++pedidoRelatorio;
+  r.carregando = true; r.erro = ''; desenhar();
+  try {
+    const dados = await api(`/relatorio?de=${de}&ate=${ate}&fuso=${-new Date().getTimezoneOffset()}`);
+    if (meu !== pedidoRelatorio) return;
+    r.dados = dados;
+  } catch (e) {
+    if (meu !== pedidoRelatorio) return;
+    r.erro = e.message; r.dados = null;
+  }
+  r.carregando = false;
+  if (estado.aba === 'relatorio') desenhar();
 }
 
 // ---------- Tela: Clientes (RF-08) ----------
@@ -556,7 +673,7 @@ function desenhar() {
     corpo = `<p class="erro">${esc(estado.erroCarregar)}</p>
       <button class="btn bloco" style="margin-top:12px" data-acao="recarregar">Tentar de novo</button>`;
   } else if (estado.tela === 'ficha') corpo = telaFicha();
-  else corpo = { agenda: telaAgenda, clientes: telaClientes, tinturas: telaTinturas }[estado.aba]();
+  else corpo = { agenda: telaAgenda, clientes: telaClientes, tinturas: telaTinturas, relatorio: telaRelatorio }[estado.aba]();
 
   document.getElementById('app').innerHTML = topo() + `<main class="conteudo">${corpo}</main>` + abas();
   desenharJanela();
@@ -616,7 +733,7 @@ async function carregarTudo() {
   try {
     [estado.tinturas, estado.clientes, estado.servicos, estado.agenda, estado.horaDeVoltar, estado.paraFinalizar] = await Promise.all([
       api('/tinturas'), api('/clientes'), api('/servicos'),
-      api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`),
+      api(`/agenda?de=${diaISO(0)}&ate=${diaISO(365)}`),
       api(`/hora-de-voltar?hoje=${diaISO(0)}`),
       api(`/agenda/para-finalizar?agora=${encodeURIComponent(agoraLocal())}`)
     ]);
@@ -629,7 +746,7 @@ async function carregarTudo() {
 // Recarrega a agenda (hoje, amanhã e o outro dia escolhido) e a "Hora de voltar",
 // que depende dos horários marcados e dos atendimentos finalizados
 async function recarregarAgenda() {
-  estado.agenda = await api(`/agenda?de=${diaISO(0)}&ate=${diaISO(1)}`);
+  estado.agenda = await api(`/agenda?de=${diaISO(0)}&ate=${diaISO(365)}`);
   estado.horaDeVoltar = await api(`/hora-de-voltar?hoje=${diaISO(0)}`);
   estado.paraFinalizar = await api(`/agenda/para-finalizar?agora=${encodeURIComponent(agoraLocal())}`);
   if (estado.diaExtra) estado.agendaExtra = await api(`/agenda?de=${estado.diaExtra}&ate=${estado.diaExtra}`);
@@ -653,7 +770,24 @@ async function abrirFicha(id) {
 
 // ---------- Ações (o que cada botão faz) ----------
 const acoes = {
-  aba(id) { estado.aba = id; estado.tela = null; desenhar(); window.scrollTo(0, 0); },
+  aba(id) {
+    estado.aba = id; estado.tela = null; desenhar(); window.scrollTo(0, 0);
+    if (id === 'relatorio') carregarRelatorio();             // sempre com os números atualizados
+  },
+
+  // --- Relatório (RF-18) ---
+  tipoRelatorio(tipo) { estado.relatorio.tipo = tipo; carregarRelatorio(); },
+  moverRelatorio(passo) {
+    const r = estado.relatorio, n = Number(passo);
+    const d = new Date(r.ref + 'T12:00');
+    if (r.tipo === 'dia') d.setDate(d.getDate() + n);
+    else if (r.tipo === 'semana') d.setDate(d.getDate() + 7 * n);
+    else if (r.tipo === 'mes') { d.setDate(1); d.setMonth(d.getMonth() + n); }
+    else d.setFullYear(d.getFullYear() + n);
+    r.ref = isoDe(d);
+    carregarRelatorio();
+  },
+  imprimirRelatorio() { window.print(); },
   voltar() { estado.tela = null; estado.ficha = null; desenhar(); },
   recarregar() { carregarTudo(); },
   fecharJanela() { estado.janela = null; desenharJanela(); },
@@ -710,7 +844,8 @@ const acoes = {
   async sair() {
     try { await api('/sair', { metodo: 'POST' }); } catch { /* mesmo sem resposta, sai da tela */ }
     Object.assign(estado, { logado: false, janela: null, tela: null, ficha: null, clientes: [], agenda: [],
-                            agendaExtra: [], paraFinalizar: [], horaDeVoltar: [], tinturas: [], busca: '', recuperarSenha: false });
+                            agendaExtra: [], paraFinalizar: [], horaDeVoltar: [], tinturas: [], busca: '', recuperarSenha: false,
+                            relatorio: { tipo: 'mes', ref: null, dados: null, carregando: false, erro: '' } });
     desenhar();
   },
 

@@ -113,6 +113,10 @@
 | T-48 | RF-01 (mostrar senha) | E-mail e senha qualquer | Digitar a senha → tocar em **Mostrar** → tocar em **Ocultar** | A senha aparece e some de novo, **sem apagar** o que foi digitado | — | ⏳ | |
 | T-49 | RF-01 (esqueci a senha) | — | Tocar em **Esqueci minha senha** → abrir "Para quem cuida do sistema" → **Voltar para o login** | Mostra a explicação e o comando; volta para o login | — | ⏳ | |
 | T-50 | RNF-03 (fechar janela) | Uma tintura cadastrada | Abrir **Nova tintura** → tocar no **×** · repetir com **Finalizar** e **Cancelar horário** | A janela fecha sem salvar nada; o cursor vai para o primeiro campo, não para o × | — | ⏳ | |
+| T-51 | RF-03 (próximos) | Agendamentos daqui a 3 dias e daqui a 20 dias | Abrir a Agenda e rolar até **Próximos agendamentos** | Os dois aparecem, separados por dia, sem escolher data; cancelados não aparecem | — | ⏳ | |
+| T-52 | RF-18 (mês) | Pelo menos 1 atendimento finalizado este mês, com 1 tubo de 7.0 | Aba **Relatório** → **Mês** | Os números batem com o que foi finalizado (atendimentos, serviços, tubos) | — | ⏳ | |
+| T-53 | RF-18 (períodos) | — | Trocar entre **Dia / Semana / Mês / Ano** e usar ← → | O título muda certo (ex.: semana de segunda a domingo) e os números acompanham | — | ⏳ | |
+| T-54 | RF-18 (imprimir) | — | **Imprimir ou salvar em PDF** → destino "Salvar como PDF" | O PDF sai só com o relatório, sem menu e sem botões | — | ⏳ | |
 
 ---
 
