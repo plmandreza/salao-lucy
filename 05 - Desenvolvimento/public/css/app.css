@@ -60,3 +60,14 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none}
   .numero-relatorio,.lista-relatorio li{break-inside:avoid}
   .barra,.barra span{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+
+/* Ficha: histórico com linhas em cores alternadas (leitura mais fácil) */
+.historico{list-style:none;margin:0;padding:0}
+.historico li{display:flex;align-items:center;justify-content:space-between;gap:var(--esp-3);padding:12px var(--esp-4);font-size:var(--texto-lg);border-bottom:1px solid var(--cor-linha)}
+.historico li:last-child{border-bottom:0}
+.historico li:nth-child(even){background:var(--cor-marca-suave)}
+.historico li .secundario{font-size:var(--texto-md);margin-top:2px}
+@media print{.historico li:nth-child(even){-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+.historico .desfazer{flex:none;font-size:14px;padding:8px 12px;background:var(--cor-superficie)}
+.lista-desfazer{padding-left:20px;margin:0}
+.lista-desfazer li{margin:6px 0}

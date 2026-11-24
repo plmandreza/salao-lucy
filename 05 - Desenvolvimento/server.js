@@ -262,6 +262,7 @@ app.get('/api/clientes/:id', async (req, res) => {
   const historico = await banco.query(
     `SELECT a.id,
             to_char(a.data, 'YYYY-MM-DD') AS data,
+            a.agendamento_id IS NOT NULL AS tem_horario,
             COALESCE((SELECT json_agg(s.nome ORDER BY s.nome)
                         FROM atendimento_servicos x JOIN servicos s ON s.id = x.servico_id
                        WHERE x.atendimento_id = a.id), '[]') AS servicos,
@@ -322,6 +323,46 @@ app.delete('/api/clientes/:id', async (req, res) => {
 // =========================================================
 // SERVIÇOS — lista usada no formulário de agendamento (RF-12)
 // =========================================================
+// =========================================================
+// DESFAZER ATENDIMENTO — RF-19
+// Para corrigir um atendimento finalizado por engano, sem excluir a cliente:
+// devolve os tubos ao estoque, volta o horário para a agenda (confirmado)
+// e apaga só esse atendimento do histórico. Tudo numa transação.
+// =========================================================
+app.delete('/api/atendimentos/:id', async (req, res) => {
+  const id = inteiro(req.params.id, 1);
+  if (!id) return res.status(404).json({ erro: 'Atendimento não encontrado.' });
+
+  const resultado = await transacao(async conexao => {
+    const { rows: [atendimento] } = await conexao.query(
+      'SELECT id, agendamento_id FROM atendimentos WHERE id = $1 FOR UPDATE', [id]
+    );
+    if (!atendimento) throw new ErroAmigavel('Atendimento não encontrado. Recarregue a página.', 404);
+
+    // 1. Devolve os tubos usados
+    await conexao.query(
+      `UPDATE tinturas t SET quantidade_tubos = t.quantidade_tubos + x.quantidade_tubos
+         FROM atendimento_tinturas x
+        WHERE x.atendimento_id = $1 AND x.tintura_id = t.id`, [id]
+    );
+    // 2. O horário volta para a agenda (se ainda existir)
+    if (atendimento.agendamento_id) {
+      await conexao.query(
+        `UPDATE agendamentos SET status = 'confirmado' WHERE id = $1 AND status = 'concluido'`,
+        [atendimento.agendamento_id]
+      );
+    }
+    // 3. Apaga o atendimento (serviços e tubos dele vão junto)
+    await conexao.query('DELETE FROM atendimentos WHERE id = $1', [id]);
+
+    const { rows: tinturas } = await conexao.query(
+      `SELECT ${COLUNAS_TINTURA} FROM tinturas ORDER BY codigo, marca`
+    );
+    return { tinturas };
+  });
+  res.json(resultado);
+});
+
 app.get('/api/servicos', async (req, res) => {
   const { rows } = await banco.query(
     'SELECT id, nome, intervalo_retorno_dias FROM servicos ORDER BY nome'

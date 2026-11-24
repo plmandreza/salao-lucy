@@ -123,6 +123,8 @@
 | T-56 | RN-09 (mudou na hora) | Horário só de Corte | **Finalizar** → marcar **Tintura** → 1 tubo de 7.0 → Concluir | O estoque de 7.0 baixa 1 e o histórico mostra "Corte + Tintura · 7.0 (1 tubo)" | — | ⏳ | |
 | T-57 | RN-10 | Um agendamento daqui a 2 dias e outro hoje, já passado | Olhar os cartões na Agenda | O de daqui a 2 dias **não** tem "Finalizar"; o que já passou tem | — | ⏳ | |
 | T-58 | RF-11 (topo da Agenda) | Pelo menos 1 cliente na "Hora de voltar" | Abrir a Agenda | Aparece "Hora de voltar" abaixo do resumo do dia, com até 3 clientes; com mais de 3, o botão "Ver todas" leva para a aba Clientes | — | ⏳ | |
+| T-59 | RNF-03 (leitura) | Cliente com 3 ou mais atendimentos | Abrir a ficha | O histórico mostra uma linha por atendimento, com cores alternadas (branco / rosa claro) e letra maior | — | ⏳ | |
+| T-60 | RF-19 | Atendimento finalizado com 2 tubos de 7.0 | Ficha → **Desfazer** na linha → **Sim, desfazer** | A linha sai do histórico; o 7.0 ganha 2 tubos; o horário volta para a agenda como **Confirmado**; a cliente continua cadastrada | — | ⏳ | |
 
 ---
 

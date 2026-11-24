@@ -243,3 +243,26 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
   - o de mais tarde hoje e o de daqui a 5 dias não mostraram;
   - com 4 clientes na hora de voltar, apareceram 3 e "Ver todas (4)", que levou para a aba Clientes.
 - **Testes:** T-57 e T-58 ficam para eu executar e registrar com print.
+
+## Histórico com cores alternadas
+
+- **Data:** 23/11/2026
+- **O que pedi:** "no histórico da ficha, colocar as linhas das datas e procedimentos em cores alternadas para melhor visualização — a Lucy tem 70+".
+- **O que a IA fez:** cada atendimento virou uma linha da largura do cartão, com fundo alternado (branco e o rosa claro do Design System, `--cor-marca-suave`), divisória entre as linhas e letra maior (17 px; a linha da tintura com 16 px).
+- **Contraste:** o texto continua acima de 4,5:1 nos dois fundos.
+- **Teste:** T-59 fica para eu executar e registrar com print.
+
+## Desfazer atendimento sem excluir a cliente
+
+- **Data:** 23/11/2026
+- **O que pedi:** "tem como corrigir isso sem excluir a cliente? acho que fica ruim pra Lucy assim" (sobre o atendimento errado de 28/11).
+- **O que a IA fez (RF-19):**
+  - Botão **Desfazer** em cada linha do histórico, com uma janela que explica o que vai acontecer.
+  - Nova rota `DELETE /api/atendimentos/:id`. Numa transação, ela:
+    - devolve os tubos ao estoque;
+    - volta o horário para a agenda como confirmado;
+    - apaga só esse atendimento.
+- **Como a IA conferiu:**
+  - No PostgreSQL: o atendimento tinha 2 tubos de 7.0. O estoque passou de 5 para 7, o horário voltou para "confirmado", o atendimento sumiu e a cliente continuou.
+  - No navegador automático: abriu a janela, confirmou e viu a linha sumir do histórico.
+- **Teste:** T-60 fica para eu executar e registrar com print.

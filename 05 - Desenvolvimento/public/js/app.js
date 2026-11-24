@@ -470,13 +470,18 @@ function telaFicha() {
   const c = estado.ficha;
   if (!c) return `<p class="carregando">Carregando ficha…</p>`;
 
+  // Linhas com cores alternadas (branco / rosa claro) para ler com mais facilidade
   const historico = c.historico.length
-    ? c.historico.map(h => `
-        <div style="border-left:3px solid var(--cor-marca-suave);padding:4px 0 4px 12px;margin:10px 0">
-          <strong>${dataBR(h.data)}</strong> · ${esc(h.servicos.join(' + ') || 'Atendimento')}
-          ${h.tinturas.length ? `<div class="secundario">Tintura: ${h.tinturas.map(t => `${esc(t.codigo)} (${plural(t.quantidade, 'tubo')})`).join(', ')}</div>` : ''}
-        </div>`).join('')
-    : `<span class="secundario">Nenhum atendimento ainda.</span>`;
+    ? `<ol class="historico">${c.historico.map(h => `
+        <li>
+          <div>
+            <strong>${dataBR(h.data)}</strong> · ${esc(h.servicos.join(' + ') || 'Atendimento')}
+            ${h.tinturas.length ? `<div class="secundario">Tintura: ${h.tinturas.map(t => `${esc(t.codigo)} (${plural(t.quantidade, 'tubo')})`).join(', ')}</div>` : ''}
+          </div>
+          <button class="btn desfazer" data-acao="abrirDesfazerAtendimento" data-id="${h.id}"
+                  aria-label="Desfazer o atendimento de ${dataBR(h.data)}">Desfazer</button>
+        </li>`).join('')}</ol>`
+    : `<p class="secundario" style="margin:0;padding:var(--esp-4)">Nenhum atendimento ainda.</p>`;
 
   return `<button class="btn" style="border:0;background:none;padding-left:0;color:var(--cor-marca)" data-acao="voltar">← Voltar</button>
     ${c.alergias ? `<div class="alerta-alergia" role="alert" style="margin:8px 0 12px">⚠️ Alergia: ${esc(c.alergias)}</div>` : ''}
@@ -488,7 +493,7 @@ function telaFicha() {
     <h2 class="titulo-secao">Anotações</h2>
     <article class="card">${c.anotacoes ? esc(c.anotacoes).replace(/\n/g, '<br>') : '<span class="secundario">Sem anotações.</span>'}</article>
     <h2 class="titulo-secao">Histórico (${c.historico.length})</h2>
-    <article class="card">${historico}</article>
+    <article class="card" style="padding:0;overflow:hidden">${historico}</article>
     <button class="btn perigo bloco" data-acao="abrirExcluirCliente">Excluir cliente</button>`;
 }
 
@@ -673,6 +678,19 @@ function conteudoJanela() {
       return `<h2>Nova cliente</h2>${formularioCliente()}${erro}${botoesJanela('salvarNovaCliente', 'Salvar cliente')}`;
     case 'editarCliente':
       return `<h2>Editar ficha</h2>${formularioCliente(estado.ficha)}${erro}${botoesJanela('salvarEdicaoCliente', 'Salvar alterações')}`;
+    case 'desfazerAtendimento': {
+      const h = estado.ficha.historico.find(x => x.id === j.id);
+      const tubos = h.tinturas.map(t => `${plural(t.quantidade, 'tubo')} de ${esc(t.codigo)}`).join(', ');
+      return `<h2>Desfazer este atendimento?</h2>
+        <p><strong>${dataBR(h.data)}</strong> · ${esc(h.servicos.join(' + ') || 'Atendimento')}</p>
+        <p>Use quando o atendimento foi finalizado por engano. O que acontece:</p>
+        <ul class="lista-desfazer">
+          <li>Ele sai do histórico de ${esc(estado.ficha.nome)}. <strong>A ficha dela continua.</strong></li>
+          ${tubos ? `<li>${tubos} ${h.tinturas.reduce((n, t) => n + t.quantidade, 0) === 1 ? 'volta' : 'voltam'} para o estoque.</li>` : ''}
+          ${h.tem_horario ? '<li>O horário volta para a agenda, como <strong>confirmado</strong>, para finalizar de novo do jeito certo.</li>' : ''}
+        </ul>${erro}
+        ${botoesJanela('confirmarDesfazerAtendimento', 'Sim, desfazer', 'perigo')}`;
+    }
     case 'excluirCliente':
       return `<h2>Excluir ${esc(estado.ficha.nome)}?</h2>
         <p>A ficha, o histórico e os horários dela serão apagados. <strong>Isso não pode ser desfeito.</strong></p>${erro}
@@ -980,6 +998,18 @@ const acoes = {
   abrirFicha(id) { abrirFicha(id); },
   abrirNovaCliente() { estado.janela = { tipo: 'novaCliente' }; desenharJanela(); },
   abrirEditarCliente() { estado.janela = { tipo: 'editarCliente' }; desenharJanela(); },
+  abrirDesfazerAtendimento(id) { estado.janela = { tipo: 'desfazerAtendimento', id: Number(id) }; desenharJanela(); },
+  confirmarDesfazerAtendimento(_, botao) {
+    return salvando(botao, async () => {
+      const { tinturas } = await api(`/atendimentos/${estado.janela.id}`, { metodo: 'DELETE' });
+      estado.tinturas = tinturas;                  // tubos devolvidos
+      estado.janela = null;
+      estado.ficha = await api(`/clientes/${estado.ficha.id}`);
+      await recarregarAgenda();                    // o horário voltou para a agenda
+      desenhar();
+      avisar('Atendimento desfeito. Estoque e agenda atualizados.');
+    });
+  },
   abrirExcluirCliente() { estado.janela = { tipo: 'excluirCliente' }; desenharJanela(); },
   salvarNovaCliente(_, botao) {
     return salvando(botao, async () => {
