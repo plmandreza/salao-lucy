@@ -1,20 +1,20 @@
 # Deploy — Lucy Cabeleireira
 
 **Etapa 07 — Testes, qualidade e deploy**
-**Responsável:** [Seu nome] · **Data:** 23/11/2026
+**Responsável:** Andreza Pinho · **Data:** 23/11/2026
 
 ---
 
 ## 1. Decisão: implantação **local** com Docker
 
-O sistema é implantado e demonstrado **no computador da desenvolvedora**, com Docker, e o código fica disponível no **GitHub**. O roteiro do Prof. Bruno permite: *"Implantar em ambiente local ou remoto e testar a jornada fim a fim"*.
+O sistema é implantado e demonstrado **no computador da desenvolvedora**, com Docker, e o código fica disponível no **GitHub**. O roteiro do Prof. Bruno permite: _"Implantar em ambiente local ou remoto e testar a jornada fim a fim"_.
 
-| | |
-|---|---|
-| **Endereço da demonstração** | http://localhost:8080 |
-| **Repositório** | https://github.com/plmandreza/salao-lucy |
-| **Como rodar** | `README.md` → "Como rodar (com Docker)" |
-| **Comprovação** | Testes T-42 a T-45 (`07 - Testes/evidencias`) |
+|                              |                                               |
+| ---------------------------- | --------------------------------------------- |
+| **Endereço da demonstração** | http://localhost:8080                         |
+| **Repositório**              | https://github.com/plmandreza/salao-lucy      |
+| **Como rodar**               | `README.md` → "Como rodar (com Docker)"       |
+| **Comprovação**              | Testes T-42 a T-45 (`07 - Testes/evidencias`) |
 
 ### Por que local (e não na internet) nesta versão
 
@@ -34,14 +34,14 @@ Deixar **tudo aberto antes** de começar a apresentação:
 2. Navegador em http://localhost:8080, **já logada**, na aba Agenda.
 3. Ter pelo menos: uma cliente **com alergia** marcada para **hoje**, e uma tintura perto do mínimo.
 
-**Jornada:** *entrar → executar a operação principal → conferir o resultado*
+**Jornada:** _entrar → executar a operação principal → conferir o resultado_
 
-| Tempo | Ação | O que mostrar |
-|---|---|---|
-| 0–10 s | Agenda | Resumo do dia com **"⚠️ Atenção às alergias"** |
-| 10–25 s | **Finalizar** o atendimento | Alergia no topo da janela; marcar 1 tubo de tintura |
-| 25–40 s | Aba **Tinturas** | O estoque **baixou sozinho** e apareceu o **alerta** |
-| 40–55 s | **Ficha** da cliente | O atendimento entrou no **histórico** |
+| Tempo   | Ação                        | O que mostrar                                        |
+| ------- | --------------------------- | ---------------------------------------------------- |
+| 0–10 s  | Agenda                      | Resumo do dia com **"⚠️ Atenção às alergias"**       |
+| 10–25 s | **Finalizar** o atendimento | Alergia no topo da janela; marcar 1 tubo de tintura  |
+| 25–40 s | Aba **Tinturas**            | O estoque **baixou sozinho** e apareceu o **alerta** |
+| 40–55 s | **Ficha** da cliente        | O atendimento entrou no **histórico**                |
 
 ### Plano B (contingência)
 
@@ -57,11 +57,11 @@ Deixar **tudo aberto antes** de começar a apresentação:
 
 Pesquisa feita em 23/11/2026. **Planos gratuitos mudam: conferir de novo antes de publicar.**
 
-| Opção | Como funciona | Ponto forte | Limitação |
-|---|---|---|---|
-| **A. Render (servidor) + Neon (banco)** — *recomendada* | Render roda o mesmo Dockerfile; Neon guarda o PostgreSQL | Gratuito, com HTTPS; o banco gratuito do Neon não expira (1 GB por projeto) | O serviço gratuito do Render "dorme" após 15 min sem acesso e leva cerca de 1 min para acordar |
-| **B. Render (servidor + banco)** | Tudo no Render | Mais simples de montar | O banco gratuito do Render **expira em 30 dias** — não serve para uso real |
-| **C. Local + GitHub** — *escolhida agora* | Docker no computador | Sem custo, sem risco | Não funciona no celular da Lucy |
+| Opção                                                   | Como funciona                                            | Ponto forte                                                                 | Limitação                                                                                      |
+| ------------------------------------------------------- | -------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| **A. Render (servidor) + Neon (banco)** — _recomendada_ | Render roda o mesmo Dockerfile; Neon guarda o PostgreSQL | Gratuito, com HTTPS; o banco gratuito do Neon não expira (1 GB por projeto) | O serviço gratuito do Render "dorme" após 15 min sem acesso e leva cerca de 1 min para acordar |
+| **B. Render (servidor + banco)**                        | Tudo no Render                                           | Mais simples de montar                                                      | O banco gratuito do Render **expira em 30 dias** — não serve para uso real                     |
+| **C. Local + GitHub** — _escolhida agora_               | Docker no computador                                     | Sem custo, sem risco                                                        | Não funciona no celular da Lucy                                                                |
 
 Fontes: documentação do Render (render.com/docs/free) e do Neon (neon.com, plano Free).
 

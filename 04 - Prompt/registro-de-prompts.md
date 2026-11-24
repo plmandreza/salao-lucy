@@ -164,6 +164,15 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **Minha decisão:** **C, implantação local**, porque nesta versão o objetivo é a apresentação para o professor e a turma, sem custo e sem expor dados de saúde. A opção A ficou documentada como próxima versão, com um checklist de segurança (`08 - Deploy/deploy.md`).
 - **Repositório:** público para a apresentação (o `.env` nunca entrou no Git — T-47).
 
+## Etapa 08 — Resultados, melhorias e retrospectiva
+
+- **Data:** 23/11/2026
+- **Prompt usado (do roteiro do Prof. Bruno):**
+  > Atue como mentor de engenharia de software. Compare documentação, funcionalidades prontas, testes executados, tempo gasto e feedback. Identifique o que foi entregue, o que ficou pendente, até três desafios reais e três melhorias priorizadas por benefício, esforço e risco. Diferencie fatos verificados, hipóteses e recomendações.
+- **O que a IA entregou:** `09 - Melhorias/relatorio-final.md`.
+- **Como os números foram obtidos:** a IA **contou** nos arquivos (requisitos, casos de teste com ✅/⏳, defeitos, migrações, rotas, linhas de código) em vez de estimar. Onde não havia dado (estimativa de tempo), o relatório diz que não havia.
+- **Minha revisão:** [conferir os números e as dificuldades]
+
 ## Etapa 04 — Design System
 
 - **Data:** 23/11/2026

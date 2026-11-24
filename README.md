@@ -2,22 +2,22 @@
 
 Sistema web para o salão da Lucy: **agenda** com confirmação pelo WhatsApp, **fichas de clientes** com alergias em destaque e **estoque de tinturas** com baixa automática ao finalizar o atendimento.
 
-Projeto acadêmico de Vibe Coding — Graduação em ADS · Prof. Me. Bruno Rodrigues · [Seu nome] · 2026
+Projeto acadêmico de Vibe Coding — Graduação em ADS · Prof. Me. Bruno Rodrigues · Andreza Pinho · 2026
 
 **Repositório:** https://github.com/plmandreza/salao-lucy · **Demonstração:** local, com Docker (ver abaixo e `08 - Deploy/deploy.md`)
 
-| Camada | Tecnologia |
-|---|---|
-| Telas (frontend) | HTML, CSS e JavaScript puros (`05 - Desenvolvimento/public`) |
-| Servidor (backend) | Node.js 22 + Express 5 (`05 - Desenvolvimento/server.js`) |
-| Banco de dados | PostgreSQL 16 (`05 - Desenvolvimento/db/schema.sql`) |
-| Ambiente | Docker + Docker Compose (`06 - Docker/compose.yaml`) |
+| Camada             | Tecnologia                                                   |
+| ------------------ | ------------------------------------------------------------ |
+| Telas (frontend)   | HTML, CSS e JavaScript puros (`05 - Desenvolvimento/public`) |
+| Servidor (backend) | Node.js 22 + Express 5 (`05 - Desenvolvimento/server.js`)    |
+| Banco de dados     | PostgreSQL 16 (`05 - Desenvolvimento/db/schema.sql`)         |
+| Ambiente           | Docker + Docker Compose (`06 - Docker/compose.yaml`)         |
 
 ---
 
 ## Como rodar (com Docker) — jeito recomendado
 
-Só é preciso ter o **Docker Desktop** instalado e ligado (*Engine running*). Não precisa instalar Node.js nem PostgreSQL.
+Só é preciso ter o **Docker Desktop** instalado e ligado (_Engine running_). Não precisa instalar Node.js nem PostgreSQL.
 
 **1. Crie o arquivo de configuração** (só na primeira vez):
 
@@ -59,16 +59,16 @@ O mesmo comando, com o mesmo e-mail, serve para **trocar a senha**.
 
 ## Comandos do dia a dia (dentro de `06 - Docker`)
 
-| Para… | Comando |
-|---|---|
-| Ligar (e reconstruir depois de mudar o código) | `docker compose up -d --build` |
-| Ver se está funcionando | `docker compose ps` |
-| Ver o que o servidor está escrevendo | `docker compose logs -f app` (Ctrl+C sai) |
-| Ver o diário do banco | `docker compose logs db` |
-| Testar a saúde do sistema | abrir http://localhost:8080/api/saude |
-| Desligar (os dados **ficam** guardados) | `docker compose down` |
-| ⚠️ Desligar **e apagar todos os dados** | `docker compose down -v` |
-| Fazer cópia de segurança do banco | `docker compose exec -T db pg_dump -U lucy salao > backup.sql` |
+| Para…                                          | Comando                                                        |
+| ---------------------------------------------- | -------------------------------------------------------------- |
+| Ligar (e reconstruir depois de mudar o código) | `docker compose up -d --build`                                 |
+| Ver se está funcionando                        | `docker compose ps`                                            |
+| Ver o que o servidor está escrevendo           | `docker compose logs -f app` (Ctrl+C sai)                      |
+| Ver o diário do banco                          | `docker compose logs db`                                       |
+| Testar a saúde do sistema                      | abrir http://localhost:8080/api/saude                          |
+| Desligar (os dados **ficam** guardados)        | `docker compose down`                                          |
+| ⚠️ Desligar **e apagar todos os dados**        | `docker compose down -v`                                       |
+| Fazer cópia de segurança do banco              | `docker compose exec -T db pg_dump -U lucy salao > backup.sql` |
 
 ---
 
@@ -103,13 +103,13 @@ docker compose exec -T db psql -U lucy -d salao < "../05 - Desenvolvimento/db/mi
 
 ## Problemas comuns
 
-| Sintoma | Causa provável | O que fazer |
-|---|---|---|
-| `port is already allocated` | Outro programa usa a porta 8080 ou 5433 | Feche o outro programa ou troque o primeiro número em `ports` no `compose.yaml` |
+| Sintoma                                            | Causa provável                                          | O que fazer                                                                                                   |
+| -------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `port is already allocated`                        | Outro programa usa a porta 8080 ou 5433                 | Feche o outro programa ou troque o primeiro número em `ports` no `compose.yaml`                               |
 | "autenticação do tipo senha falhou" (em português) | O servidor conectou num PostgreSQL instalado no Windows | Por isso o banco do Docker usa a porta **5433** no PC; confira `PGPORT=5433` no `.env` (modo desenvolvimento) |
-| `app` fica *(unhealthy)* | O servidor não conecta no banco | `docker compose logs app` e confira as senhas iguais no `.env` |
-| Mudei a senha do `.env` e parou de conectar | O banco grava a senha só na criação | Volte a senha antiga ou recrie o banco (`down -v`, **apaga os dados**) |
-| Página em branco ou "Faça login" toda hora | Sessão vencida ou cookie bloqueado | Saia e entre de novo; em último caso limpe os cookies de `localhost` |
+| `app` fica _(unhealthy)_                           | O servidor não conecta no banco                         | `docker compose logs app` e confira as senhas iguais no `.env`                                                |
+| Mudei a senha do `.env` e parou de conectar        | O banco grava a senha só na criação                     | Volte a senha antiga ou recrie o banco (`down -v`, **apaga os dados**)                                        |
+| Página em branco ou "Faça login" toda hora         | Sessão vencida ou cookie bloqueado                      | Saia e entre de novo; em último caso limpe os cookies de `localhost`                                          |
 
 ---
 
