@@ -1,7 +1,7 @@
 # Relatório final — Lucy Cabeleireira
 
 **Etapa 08 — Resultados, melhorias e retrospectiva**
-**Responsável:** Andreza Pinho · **Data:** 23/11/2026
+**Responsável:** Andreza Pinho Lobo Martins · **Data:** 23/11/2026
 **Regra usada:** cada número abaixo foi **contado nos arquivos do projeto**, não estimado. O que não foi feito está dito.
 
 ---

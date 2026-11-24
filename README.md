@@ -2,7 +2,7 @@
 
 Sistema web para o salão da Lucy: **agenda** com confirmação pelo WhatsApp, **fichas de clientes** com alergias em destaque e **estoque de tinturas** com baixa automática ao finalizar o atendimento.
 
-Projeto acadêmico de Vibe Coding — Graduação em ADS · Prof. Me. Bruno Rodrigues · Andreza Pinho · 2026
+Projeto acadêmico de Vibe Coding — Graduação em ADS · Prof. Me. Bruno Rodrigues · Andreza Pinho Lobo Martins · 2026
 
 **Repositório:** https://github.com/plmandreza/salao-lucy · **Demonstração:** local, com Docker (ver abaixo e `08 - Deploy/deploy.md`)
 

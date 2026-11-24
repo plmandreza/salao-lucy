@@ -1,7 +1,7 @@
 # Design System — Lucy Cabeleireira v1.0
 
 **Etapa 04 — Design System**
-**Responsável:** Andreza Pinho · **Data:** 23/11/2026
+**Responsável:** Andreza Pinho Lobo Martins · **Data:** 23/11/2026
 **Arquivos:** `tokens.css` (o código), `guia-visual.html` (a vitrine para ver e tirar prints)
 **Base:** o mockup da Etapa 03. A identidade aprovada foi mantida.
 

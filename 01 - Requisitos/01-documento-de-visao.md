@@ -1,7 +1,7 @@
 # Documento de Visão — Lucy Cabeleireira (nome provisório)
 
 **Etapa 01 — Definição do problema e planejamento**
-**Responsável:** Andreza Pinho — trabalho individual (assume os 5 papéis do roteiro)
+**Responsável:** Andreza Pinho Lobo Martins — trabalho individual (assume os 5 papéis do roteiro)
 **Usuária entrevistada:** Lucy, cabeleireira, dona do salão
 **Data:** 23/11/2026 · **Versão:** 0.1 (rascunho para revisão)
 
@@ -98,4 +98,4 @@ Ajudar a Lucy a **confirmar e organizar seus horários**, **lembrar as clientes 
 
 - **Ferramenta:** Claude (assistente de IA).
 - **Uso:** organizar as respostas da entrevista em problemas, escopo e critérios.
-- **Revisão humana:** Andreza Pinho conferiu que as frases citadas são as respostas reais da Lucy e que nenhum fato foi inventado. _(marcar após revisar)_
+- **Revisão humana:** Andreza Pinho Lobo Martins conferiu que as frases citadas são as respostas reais da Lucy e que nenhum fato foi inventado. _(marcar após revisar)_

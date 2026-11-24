@@ -1,7 +1,7 @@
 # Deploy — Lucy Cabeleireira
 
 **Etapa 07 — Testes, qualidade e deploy**
-**Responsável:** Andreza Pinho · **Data:** 23/11/2026
+**Responsável:** Andreza Pinho Lobo Martins · **Data:** 23/11/2026
 
 ---
 

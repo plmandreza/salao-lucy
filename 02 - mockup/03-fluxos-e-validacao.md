@@ -1,7 +1,7 @@
 # Modelagem, mockup e validação — Lucy Cabeleireira
 
 **Etapa 03 — Modelagem, mockup e validação**
-**Responsável:** Andreza Pinho · **Data:** 23/11/2026 · **Versão:** 0.1
+**Responsável:** Andreza Pinho Lobo Martins · **Data:** 23/11/2026 · **Versão:** 0.1
 **Base:** Especificação de Requisitos v0.1 (nenhuma função nova foi adicionada)
 
 ---
