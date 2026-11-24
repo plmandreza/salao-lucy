@@ -114,7 +114,8 @@ const estado = {
   paraFinalizar: [],    // RF-16: já passaram e não foram finalizados
   busca: '',
   ficha: null,          // ficha aberta (com histórico)
-  janela: null          // janela aberta: { tipo, ... } ou null
+  janela: null,         // janela aberta: { tipo, ... } ou null
+  recuperarSenha: false // true = a tela de login mostra "Esqueceu a senha?"
 };
 
 function avisar(mensagem) {
@@ -133,18 +134,40 @@ function topo() {
 
 // ---------- Tela: Login (RF-01) ----------
 function telaLogin() {
-  return `<main class="conteudo" style="padding-top:48px">
-    <div style="text-align:center;font-size:44px" aria-hidden="true">💇‍♀️</div>
-    <h1 style="text-align:center;color:var(--cor-marca-escura);margin:8px 0 4px">Lucy Cabeleireira</h1>
+  const cabecalho = `<div style="text-align:center;font-size:44px" aria-hidden="true">💇‍♀️</div>
+    <h1 style="text-align:center;color:var(--cor-marca-escura);margin:8px 0 4px">Lucy Cabeleireira</h1>`;
+
+  // Recuperar senha: o sistema roda no computador do salão e não envia e-mail.
+  // Por isso a senha nova é criada por quem cuida do sistema (comando criar-usuario).
+  if (estado.recuperarSenha) {
+    return `<main class="conteudo" style="padding-top:48px">${cabecalho}
+      <h2 style="margin:24px 0 8px">Esqueceu a senha?</h2>
+      <p>Por segurança, a senha fica guardada embaralhada: <strong>ninguém consegue ver qual era</strong>, nem o sistema.</p>
+      <p>Peça para quem cuida do sistema criar uma <strong>senha nova</strong> para você. Leva 1 minuto e nenhum dado se perde.</p>
+      <details class="card" style="margin-top:16px">
+        <summary style="cursor:pointer;font-weight:var(--peso-forte);min-height:var(--toque-min);display:flex;align-items:center">Para quem cuida do sistema</summary>
+        <p class="secundario">No Git Bash, na pasta <strong>06 - Docker</strong>, troque o e-mail e a senha (8 caracteres ou mais):</p>
+        <code class="comando">docker compose exec app node scripts/criar-usuario.js email@exemplo.com SenhaNova123</code>
+        <p class="secundario">Depois de 5 senhas erradas, o login bloqueia por 15 minutos. Para liberar na hora: <code>docker compose restart app</code></p>
+      </details>
+      <button class="btn primario bloco" style="margin-top:16px" type="button" data-acao="voltarLogin">Voltar para o login</button>
+    </main>`;
+  }
+
+  return `<main class="conteudo" style="padding-top:48px">${cabecalho}
     <p class="secundario" style="text-align:center;margin:0 0 24px">Entre para ver a agenda e as fichas</p>
     <form id="formLogin" novalidate>
       <label class="rotulo" for="email">E-mail</label>
       <input class="campo" type="email" id="email" autocomplete="username" required>
       <label class="rotulo" for="senha">Senha</label>
-      <input class="campo" type="password" id="senha" autocomplete="current-password" required>
+      <div class="campo-senha">
+        <input class="campo" type="password" id="senha" autocomplete="current-password" required>
+        <button class="mostrar-senha" type="button" data-acao="mostrarSenha" aria-controls="senha" aria-pressed="false">Mostrar</button>
+      </div>
       <p class="erro" id="erroLogin" style="margin-top:12px"></p>
       <button class="btn primario bloco" style="margin-top:16px" type="submit" id="botaoEntrar">Entrar</button>
     </form>
+    <button class="btn bloco link-discreto" style="margin-top:8px" type="button" data-acao="esqueciSenha">Esqueci minha senha</button>
   </main>`;
 }
 
@@ -257,7 +280,7 @@ function telaAgenda() {
   const hoje = diaISO(0), amanha = diaISO(1);
   return `${resumoDoDia(hoje)}
     ${secaoParaFinalizar()}
-    <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo horário</button>
+    <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo agendamento</button>
     <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
     <h2 class="titulo-secao">Amanhã · ${rotuloDia(amanha)}</h2>${listaDoDia(amanha, estado.agenda)}
     <h2 class="titulo-secao">Ver outro dia</h2>
@@ -462,8 +485,8 @@ function conteudoJanela() {
         ${botoesJanela('salvarEntrada', 'Salvar entrada')}`;
     }
     case 'novoHorario':
-      return `<h2>Novo horário</h2>${formularioNovoHorario()}${erro}
-        ${estado.clientes.length ? botoesJanela('salvarNovoHorario', 'Salvar horário') : botoesJanela('fecharJanela', 'Ok')}`;
+      return `<h2>Novo agendamento</h2>${formularioNovoHorario()}${erro}
+        ${estado.clientes.length ? botoesJanela('salvarNovoHorario', 'Salvar agendamento') : botoesJanela('fecharJanela', 'Ok')}`;
     case 'remarcar': {
       const a = horarioPorId(j.id);
       return `<h2>Remarcar ${esc(a.nome)}</h2>
@@ -543,10 +566,13 @@ function desenharJanela(manterFoco = false) {
   const area = document.getElementById('janela');
   if (!estado.janela) { area.innerHTML = ''; return; }
   // Clicar FORA da janela não fecha: assim a Lucy não perde o que digitou
-  // por um toque sem querer. Fecha só pelo botão "Voltar" ou pela tecla Esc.
+  // por um toque sem querer. Fecha pelo "×" no canto, pelo botão "Voltar" ou pela tecla Esc.
   area.innerHTML = `<div class="fundo-janela">
-    <div class="janela" role="dialog" aria-modal="true">${conteudoJanela()}</div></div>`;
-  if (!manterFoco) area.querySelector('.janela input, .janela textarea, .janela button')?.focus();
+    <div class="janela" role="dialog" aria-modal="true">
+      <button class="fechar-janela" type="button" data-acao="fecharJanela" aria-label="Fechar">×</button>
+      ${conteudoJanela()}</div></div>`;
+  // O foco vai para o primeiro campo, não para o "×"
+  if (!manterFoco) area.querySelector('.janela :is(input, textarea, button):not(.fechar-janela)')?.focus();
 }
 
 function mostrarErroJanela(mensagem) {
@@ -632,6 +658,18 @@ const acoes = {
   recarregar() { carregarTudo(); },
   fecharJanela() { estado.janela = null; desenharJanela(); },
 
+  // --- Login ---
+  // Mostra ou esconde a senha sem apagar o que já foi digitado
+  mostrarSenha(_, botao) {
+    const campo = document.getElementById('senha');
+    const mostrar = campo.type === 'password';
+    campo.type = mostrar ? 'text' : 'password';
+    botao.textContent = mostrar ? 'Ocultar' : 'Mostrar';
+    botao.setAttribute('aria-pressed', String(mostrar));
+  },
+  esqueciSenha() { estado.recuperarSenha = true; desenhar(); window.scrollTo(0, 0); },
+  voltarLogin() { estado.recuperarSenha = false; desenhar(); },
+
   // --- Tinturas ---
   abrirNovaTintura() { estado.janela = { tipo: 'novaTintura' }; desenharJanela(); },
   abrirEditarTintura(id) { estado.janela = { tipo: 'editarTintura', id: Number(id) }; desenharJanela(); },
@@ -672,7 +710,7 @@ const acoes = {
   async sair() {
     try { await api('/sair', { metodo: 'POST' }); } catch { /* mesmo sem resposta, sai da tela */ }
     Object.assign(estado, { logado: false, janela: null, tela: null, ficha: null, clientes: [], agenda: [],
-                            agendaExtra: [], paraFinalizar: [], horaDeVoltar: [], tinturas: [], busca: '' });
+                            agendaExtra: [], paraFinalizar: [], horaDeVoltar: [], tinturas: [], busca: '', recuperarSenha: false });
     desenhar();
   },
 
@@ -689,7 +727,7 @@ const acoes = {
       } });
       await recarregarAgenda();
       estado.janela = null; estado.aba = 'agenda'; estado.tela = null; desenhar();
-      avisar(`Horário de ${novo.nome} marcado: ${rotuloDia(novo.data)} às ${novo.hora} (pendente).`);
+      avisar(`${novo.nome} agendada: ${rotuloDia(novo.data)} às ${novo.hora} (pendente).`);
     });
   },
 

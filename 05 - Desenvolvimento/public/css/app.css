@@ -13,7 +13,17 @@
 .nome{font-weight:var(--peso-forte);font-size:var(--texto-lg)}
 .secundario{color:var(--cor-texto-suave);font-size:var(--texto-sm);font-weight:var(--peso-normal)}
 .direita{text-align:right}
-.janela h2{margin:0 0 var(--esp-3);font-size:var(--texto-xl)}
+.janela{position:relative}
+.janela h2{margin:0 0 var(--esp-3);font-size:var(--texto-xl);padding-right:48px}
+/* "×" no canto superior direito das janelas (44 px para o dedo) */
+.fechar-janela{position:absolute;top:8px;right:8px;width:var(--toque-min);height:var(--toque-min);border:0;border-radius:var(--raio-controle);background:none;color:var(--cor-texto-suave);font-size:28px;line-height:1;cursor:pointer}
+.fechar-janela:hover{background:var(--cor-marca-suave);color:var(--cor-texto)}
+/* Login: botão "Mostrar/Ocultar" dentro do campo de senha */
+.campo-senha{position:relative}
+.campo-senha .campo{padding-right:96px}
+.mostrar-senha{position:absolute;top:0;right:0;height:100%;min-width:88px;border:0;background:none;color:var(--cor-marca);font:inherit;font-weight:var(--peso-forte);cursor:pointer;border-radius:0 var(--raio-controle) var(--raio-controle) 0}
+.link-discreto{border:0;background:none;color:var(--cor-marca);text-decoration:underline}
+.comando{display:block;background:var(--cor-fundo);border:1px solid var(--cor-linha);border-radius:var(--raio-controle);padding:10px 12px;font-size:13px;overflow-wrap:anywhere}
 .carregando{color:var(--cor-texto-suave);text-align:center;padding:var(--esp-6)}
 .toast[hidden]{display:none}
 .toast{width:calc(100% - 32px);max-width:440px;z-index:40}

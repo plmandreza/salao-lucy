@@ -181,3 +181,12 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
 - **O que a IA entregou:** `03 - Designer System/tokens.css`, `design-system.md` e `guia-visual.html`.
 - **Verificação:** a IA **calculou** o contraste de cada par de cores e encontrou 2 falhas no mockup (contorno de foco 2,3:1 e borda dos campos 1,9:1, abaixo do mínimo de 3:1). As duas foram corrigidas no mockup v0.2.
 - **Minha revisão:** [o que você conferiu ou mudou]
+
+## Melhoria pedida depois do uso — login e janelas
+
+- **Data:** 23/11/2026
+- **O que pedi:** "coloque na página de login uma opção de recuperar senha e de mostrar a senha ou não; os modais devem ter um 'x' no canto superior direito, não depender só do botão Voltar".
+- **O que a IA fez:** botão **Mostrar/Ocultar** dentro do campo de senha; tela **"Esqueceu a senha?"**; botão **×** (44 px) em todas as janelas, sem tirar o "Voltar" nem a tecla Esc.
+- **Decisão sobre a recuperação:** sem envio de e-mail, porque o sistema roda só no computador e não tem servidor de e-mail. Como a senha é guardada com **hash**, nem o sistema consegue mostrar a antiga: a tela explica isso e mostra o comando `criar-usuario`, que cria uma senha nova. A recuperação por e-mail ficou para a versão publicada.
+- **Como a IA conferiu:** abriu as telas num navegador automático (celular e computador), mostrou e ocultou a senha, entrou e saiu da recuperação e fechou uma janela pelo ×. Os testes T-48 a T-50 ficam para eu executar e registrar com print.
+- **Ajuste de nome (pedido meu):** "+ Novo horário" virou **"+ Novo agendamento"** (botão, título da janela e "Salvar agendamento"). Não usei "atendimento" porque no sistema essa palavra é o serviço já feito ("Finalizar atendimento", histórico); assim cada palavra tem um só significado. O mockup (Etapa 03) ficou como estava, como registro da versão antiga.
