@@ -30,12 +30,25 @@
 - 💌 **Hora de voltar:** quem está na hora de voltar aparece no topo da agenda.
 - 📊 **Relatório:** dia, semana, mês ou ano, com opção de imprimir ou salvar em PDF.
 - 🔐 **Login:** senha com hash, mostrar/ocultar senha e bloqueio depois de 5 tentativas erradas.
+- 💻📱 **Responsivo:** funciona no celular, no tablet e no computador.
 
 ## 🎀 Telas
 
+O sistema é **responsivo**: no celular (como a Lucy usa) fica numa coluna só, com o menu embaixo; no computador, o menu vai para a lateral e as telas ganham duas colunas.
+
+**💻 No computador**
+
+| Agenda | Finalizar atendimento |
+|:---:|:---:|
+| <img src="10%20-%20Apresentacao/prints/print-pc-agenda.png" alt="Agenda no computador, com para finalizar à esquerda e os horários à direita" width="420"> | <img src="10%20-%20Apresentacao/prints/print-pc-finalizar.png" alt="Janela de finalizar com alergia, serviços feitos e tubos de tintura" width="420"> |
+| **Ficha da cliente** | **Relatório** |
+| <img src="10%20-%20Apresentacao/prints/print-pc-ficha.png" alt="Ficha da cliente com alergia e histórico" width="420"> | <img src="10%20-%20Apresentacao/prints/print-pc-relatorio.png" alt="Relatório do mês" width="420"> |
+
+**📱 No celular**
+
 | Agenda | Finalizar atendimento | Ficha da cliente | Relatório |
 |:---:|:---:|:---:|:---:|
-| <img src="10%20-%20Apresentacao/prints/print-agenda.png" alt="Agenda com resumo do dia e hora de voltar" width="200"> | <img src="10%20-%20Apresentacao/prints/print-finalizar.png" alt="Janela de finalizar com serviços feitos e tubos de tintura" width="200"> | <img src="10%20-%20Apresentacao/prints/print-ficha.png" alt="Ficha da cliente com alergia e histórico" width="200"> | <img src="10%20-%20Apresentacao/prints/print-relatorio.png" alt="Relatório do mês" width="200"> |
+| <img src="10%20-%20Apresentacao/prints/print-agenda.png" alt="Agenda no celular" width="200"> | <img src="10%20-%20Apresentacao/prints/print-finalizar.png" alt="Finalizar no celular" width="200"> | <img src="10%20-%20Apresentacao/prints/print-ficha.png" alt="Ficha no celular" width="200"> | <img src="10%20-%20Apresentacao/prints/print-relatorio.png" alt="Relatório no celular" width="200"> |
 
 <sub>Todos os dados das telas são fictícios. Os telefones usam o DDD 00, que não existe.</sub>
 
