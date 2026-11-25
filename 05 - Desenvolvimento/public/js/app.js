@@ -224,7 +224,7 @@ function listaDoDia(iso, lista) {
   const confirmados = doDia.filter(a => a.status === 'confirmado').length;
   const pendentes = doDia.filter(a => a.status === 'pendente').length;
   return `<p class="secundario" style="margin:-4px 0 12px">${plural(doDia.length, 'horário')} · ${confirmados} confirmado(s) · ${pendentes} pendente(s)</p>
-    ${doDia.length ? doDia.map(cardHorario).join('') : '<p class="vazio">Nenhum horário.</p>'}`;
+    ${doDia.length ? `<div class="grade-cards">${doDia.map(cardHorario).join('')}</div>` : '<p class="vazio">Nenhum horário.</p>'}`;
 }
 
 // RF-17: resumo do dia. A Lucy olha DE MANHÃ (antes de abrir) e NO ALMOÇO.
@@ -283,9 +283,12 @@ function secaoParaFinalizar() {
 
 function telaAgenda() {
   const hoje = diaISO(0), amanha = diaISO(1);
-  return `${resumoDoDia(hoje)}
-    ${secaoHoraDeVoltarAgenda()}
-    ${secaoParaFinalizar()}
+  // No computador: avisos do dia numa coluna à esquerda e a agenda à direita.
+  // No celular: tudo numa coluna só, na mesma ordem de antes.
+  const avisos = `${resumoDoDia(hoje)}${secaoHoraDeVoltarAgenda()}${secaoParaFinalizar()}`;
+  return `<div class="${avisos.trim() ? 'layout-duas' : ''}">
+    ${avisos.trim() ? `<div class="coluna-lado">${avisos}</div>` : ''}
+    <div class="coluna-principal">
     <button class="btn primario bloco" style="margin-top:12px" data-acao="abrirNovoHorario">+ Novo agendamento</button>
     <h2 class="titulo-secao">Hoje · ${rotuloDia(hoje)}</h2>${listaDoDia(hoje, estado.agenda)}
     <h2 class="titulo-secao">Amanhã · ${rotuloDia(amanha)}</h2>${listaDoDia(amanha, estado.agenda)}
@@ -293,7 +296,8 @@ function telaAgenda() {
     <h2 class="titulo-secao">Ver outro dia</h2>
     <label class="rotulo" for="diaExtra" style="margin-top:0">Escolha a data</label>
     <input class="campo" type="date" id="diaExtra" value="${estado.diaExtra}">
-    <div style="margin-top:12px">${estado.diaExtra ? listaDoDia(estado.diaExtra, estado.agendaExtra) : ''}</div>`;
+    <div style="margin-top:12px">${estado.diaExtra ? listaDoDia(estado.diaExtra, estado.agendaExtra) : ''}</div>
+    </div></div>`;
 }
 
 // Todos os agendamentos depois de amanhã, separados por dia (até 1 ano)
@@ -304,7 +308,7 @@ function secaoProximos(amanha) {
   return `<h2 class="titulo-secao">Próximos agendamentos (${depois.length})</h2>
     ${dias.length ? dias.map(d => `
       <h3 class="dia-proximo">${rotuloDia(d)}${d.slice(0, 4) !== anoAtual ? '/' + d.slice(0, 4) : ''}</h3>
-      ${depois.filter(a => a.data === d).map(cardHorario).join('')}`).join('')
+      <div class="grade-cards">${depois.filter(a => a.data === d).map(cardHorario).join('')}</div>`).join('')
     : '<p class="vazio">Nenhum agendamento depois de amanhã.</p>'}`;
 }
 
@@ -378,10 +382,13 @@ function conteudoRelatorio(d) {
       ${numero(d.cancelados, 'cancelados ou não vieram')}
       ${numero(d.emAberto, 'ainda marcados ou sem finalizar')}
     </div>
+    <div class="layout-metades"><div>
     <h2 class="titulo-secao">Serviços feitos</h2>
     ${lista(d.servicos.map(s => `<li><span>${esc(s.nome)}</span><strong>${s.quantidade}</strong></li>`), 'Nenhum serviço finalizado neste período.')}
+    </div><div>
     <h2 class="titulo-secao">Tinturas usadas</h2>
     ${lista(d.tinturas.map(t => `<li><span>${esc(t.codigo)}${t.marca ? ` <span class="secundario">${esc(t.marca)}</span>` : ''}</span><strong>${plural(t.tubos, 'tubo')}</strong></li>`), 'Nenhuma tintura usada neste período.')}
+    </div></div>
     ${d.porPeriodo.length > 1 ? `
       <h2 class="titulo-secao">Atendimentos por ${d.agrupadoPor === 'dia' ? 'dia' : 'mês'}</h2>
       <ul class="lista-relatorio">${d.porPeriodo.map(p => `
@@ -412,14 +419,17 @@ async function carregarRelatorio() {
 
 // ---------- Tela: Clientes (RF-08) ----------
 function telaClientes() {
-  return `<button class="btn primario bloco" data-acao="abrirNovaCliente">+ Nova cliente</button>
+  return `<div class="layout-duas"><div class="coluna-lado">
+    <button class="btn primario bloco" data-acao="abrirNovaCliente">+ Nova cliente</button>
     <h2 class="titulo-secao">Hora de voltar (${estado.horaDeVoltar.length})</h2>
     ${listaHoraDeVoltar()}
     <button class="btn bloco" style="margin-top:4px" data-acao="abrirIntervalos">Ajustar intervalos de retorno</button>
+    </div><div class="coluna-principal">
     <h2 class="titulo-secao">Todas as clientes (${estado.clientes.length})</h2>
     <label class="rotulo" for="busca" style="margin-top:0">Buscar pelo nome</label>
     <input class="campo" type="search" id="busca" placeholder="Ex.: Ana" value="${esc(estado.busca)}" autocomplete="off">
-    <div id="listaClientes" style="margin-top:12px">${listaClientes()}</div>`;
+    <div id="listaClientes" style="margin-top:12px">${listaClientes()}</div>
+    </div></div>`;
 }
 
 // Atalho no topo da Agenda: as 3 mais urgentes (a lista já vem em ordem de urgência).
@@ -436,7 +446,7 @@ function secaoHoraDeVoltarAgenda() {
 // RF-11 / RN-05: quem está perto ou passou da data de voltar
 function listaHoraDeVoltar(limite = Infinity) {
   if (!estado.horaDeVoltar.length) return `<p class="vazio">Ninguém para chamar agora.</p>`;
-  return estado.horaDeVoltar.slice(0, limite).map(v => {
+  return `<div class="grade-cards">${estado.horaDeVoltar.slice(0, limite).map(v => {
     const prazo = v.faltam_dias < 0
       ? `<strong style="color:var(--cor-perigo)">atrasada há ${plural(-v.faltam_dias, 'dia')}</strong>`
       : v.faltam_dias === 0 ? '<strong>é hoje</strong>' : `em ${plural(v.faltam_dias, 'dia')}`;
@@ -448,7 +458,7 @@ function listaHoraDeVoltar(limite = Infinity) {
         <button class="btn" data-acao="abrirFicha" data-id="${v.cliente_id}">Ficha</button>
       </div>
     </article>`;
-  }).join('');
+  }).join('')}</div>`;
 }
 
 function listaClientes() {
@@ -456,13 +466,13 @@ function listaClientes() {
   const lista = estado.clientes.filter(c => semAcento(c.nome).includes(termo));
   if (!estado.clientes.length) return `<p class="vazio">Nenhuma cliente cadastrada ainda.</p>`;
   if (!lista.length) return `<p class="vazio">Nenhuma cliente encontrada com "${esc(estado.busca)}".</p>`;
-  return lista.map(c => `
+  return `<div class="grade-cards">${lista.map(c => `
     <button class="card" style="display:block;width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer"
             data-acao="abrirFicha" data-id="${c.id}">
       <div class="nome">${esc(c.nome)}</div>
       <div class="secundario">${esc(c.telefone)}</div>
       ${seloAlergia(c.alergias)}
-    </button>`).join('');
+    </button>`).join('')}</div>`;
 }
 
 // ---------- Tela: Ficha da cliente (RF-09) ----------
@@ -484,6 +494,7 @@ function telaFicha() {
     : `<p class="secundario" style="margin:0;padding:var(--esp-4)">Nenhum atendimento ainda.</p>`;
 
   return `<button class="btn" style="border:0;background:none;padding-left:0;color:var(--cor-marca)" data-acao="voltar">← Voltar</button>
+    <div class="layout-duas layout-ficha"><div class="coluna-lado">
     ${c.alergias ? `<div class="alerta-alergia" role="alert" style="margin:8px 0 12px">⚠️ Alergia: ${esc(c.alergias)}</div>` : ''}
     <article class="card">
       <div class="nome" style="font-size:var(--texto-xl)">${esc(c.nome)}</div>
@@ -492,9 +503,11 @@ function telaFicha() {
     </article>
     <h2 class="titulo-secao">Anotações</h2>
     <article class="card">${c.anotacoes ? esc(c.anotacoes).replace(/\n/g, '<br>') : '<span class="secundario">Sem anotações.</span>'}</article>
+    </div><div class="coluna-principal">
     <h2 class="titulo-secao">Histórico (${c.historico.length})</h2>
     <article class="card" style="padding:0;overflow:hidden">${historico}</article>
-    <button class="btn perigo bloco" data-acao="abrirExcluirCliente">Excluir cliente</button>`;
+    <button class="btn perigo bloco" data-acao="abrirExcluirCliente">Excluir cliente</button>
+    </div></div>`;
 }
 
 // ---------- Tela: Tinturas (RF-13, RF-14, RF-15) ----------
@@ -505,7 +518,7 @@ function telaTinturas() {
     : estado.tinturas.length ? `<div class="sucesso">✓ Todas as tinturas acima do mínimo.</div>` : '';
 
   const lista = estado.tinturas.length
-    ? estado.tinturas.map(t => `
+    ? `<div class="grade-cards">${estado.tinturas.map(t => `
       <article class="card">
         <div class="linha">
           <div>
@@ -521,7 +534,7 @@ function telaTinturas() {
           <button class="btn" data-acao="abrirEntrada" data-id="${t.id}">+ Entrada de tubos</button>
           <button class="btn" data-acao="abrirEditarTintura" data-id="${t.id}">Editar</button>
         </div>
-      </article>`).join('')
+      </article>`).join('')}</div>`
     : `<p class="vazio">Nenhuma tintura cadastrada ainda.</p>`;
 
   return `${alerta}
@@ -704,6 +717,7 @@ function conteudoJanela() {
 function desenhar() {
   if (estado.logado === null) { document.getElementById('app').innerHTML = `<p class="carregando">Carregando…</p>`; return; }
   if (estado.logado === false) {
+    document.getElementById('app').classList.remove('logado');
     document.getElementById('app').innerHTML = telaLogin();
     document.getElementById('janela').innerHTML = '';
     document.getElementById('email')?.focus();
@@ -717,7 +731,9 @@ function desenhar() {
   } else if (estado.tela === 'ficha') corpo = telaFicha();
   else corpo = { agenda: telaAgenda, clientes: telaClientes, tinturas: telaTinturas, relatorio: telaRelatorio }[estado.aba]();
 
-  document.getElementById('app').innerHTML = topo() + `<main class="conteudo">${corpo}</main>` + abas();
+  const app = document.getElementById('app');
+  app.classList.add('logado');
+  app.innerHTML = topo() + `<main class="conteudo">${corpo}</main>` + abas();
   desenharJanela();
 }
 

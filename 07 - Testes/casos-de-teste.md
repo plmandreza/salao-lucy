@@ -1,7 +1,7 @@
 # Casos de teste — Lucy Cabeleireira
 
 **Etapa 07 — Testes e qualidade** (preenchido conforme cada função fica pronta)
-**Responsável:** [Seu nome]
+**Responsável:** Andreza Pinho Lobo Martins
 
 **Situação:** ✅ aprovado · ❌ reprovado · ⏳ ainda não executado
 
@@ -125,6 +125,7 @@
 | T-58 | RF-11 (topo da Agenda) | Pelo menos 1 cliente na "Hora de voltar" | Abrir a Agenda | Aparece "Hora de voltar" abaixo do resumo do dia, com até 3 clientes; com mais de 3, o botão "Ver todas" leva para a aba Clientes | — | ⏳ | |
 | T-59 | RNF-03 (leitura) | Cliente com 3 ou mais atendimentos | Abrir a ficha | O histórico mostra uma linha por atendimento, com cores alternadas (branco / rosa claro) e letra maior | — | ⏳ | |
 | T-60 | RF-19 | Atendimento finalizado com 2 tubos de 7.0 | Ficha → **Desfazer** na linha → **Sim, desfazer** | A linha sai do histórico; o 7.0 ganha 2 tubos; o horário volta para a agenda como **Confirmado**; a cliente continua cadastrada | — | ⏳ | |
+| T-61 | RNF-01 (responsivo) | Dados de exemplo | Abrir o sistema com a janela do navegador larga (computador), média (tablet, ~800 px) e estreita (celular, ~390 px; no Chrome: F12 → Ctrl+Shift+M) | Computador: menu na lateral e 2 colunas. Tablet: cartões em 2 colunas e menu embaixo. Celular: uma coluna, como antes. Em nenhum tamanho há rolagem para os lados | — | ⏳ | |
 
 ---
 

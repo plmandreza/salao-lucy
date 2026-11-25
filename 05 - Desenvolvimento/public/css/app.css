@@ -71,3 +71,52 @@ a.btn{display:inline-flex;align-items:center;text-decoration:none}
 .historico .desfazer{flex:none;font-size:14px;padding:8px 12px;background:var(--cor-superficie)}
 .lista-desfazer{padding-left:20px;margin:0}
 .lista-desfazer li{margin:6px 0}
+
+/* =========================================================
+   RESPONSIVO (RNF-03)
+   Celular (até 599 px): uma coluna, menu embaixo — como a Lucy usa.
+   Tablet (600–959 px): coluna mais larga, cartões em 2 colunas.
+   Computador (960 px ou mais): menu na lateral, 2 colunas por tela
+   e cartões em grade.
+   ========================================================= */
+.grade-cards>.card:last-child{margin-bottom:var(--esp-3)}
+@media (min-width:600px){
+  .app.logado,.app.logado .abas{max-width:760px}
+  .grade-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--esp-3);align-items:start}
+  .grade-cards>.card{margin:0}
+  .grade-cards{margin-bottom:var(--esp-3)}
+  .layout-metades{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--esp-4);align-items:start}
+}
+@media (min-width:960px){
+  .app.logado{max-width:none;display:grid;grid-template-columns:232px minmax(0,1fr);grid-template-rows:auto 1fr;
+    grid-template-areas:"topo topo" "abas conteudo";padding-bottom:0}
+  .app.logado .topo{grid-area:topo;padding:14px 32px}
+  .app.logado .topo h1{font-size:20px}
+  .app.logado .conteudo{grid-area:conteudo;padding:24px 40px 48px;width:100%;max-width:1280px;box-sizing:border-box}
+  /* Menu vira barra lateral */
+  .app.logado .abas{grid-area:abas;position:sticky;top:0;bottom:auto;left:auto;transform:none;max-width:none;width:auto;height:100vh;align-self:start;
+    display:flex;flex-direction:column;gap:4px;padding:20px 12px;border-top:0;border-right:1px solid var(--cor-linha);box-sizing:border-box}
+  .app.logado .abas button{flex:none;flex-direction:row;justify-content:flex-start;gap:12px;min-height:52px;padding:0 16px;border-radius:12px;font-size:16px}
+  .app.logado .abas button:hover{background:var(--cor-fundo)}
+  .app.logado .abas button[aria-current=page]{background:var(--cor-marca-suave)}
+  .app.logado .abas button[aria-current=page]::before{top:12px;bottom:12px;left:0;right:auto;width:4px;height:auto;border-radius:0 4px 4px 0}
+  .app.logado .contagem{position:static;margin-left:auto}
+  /* Duas colunas: avisos/ações à esquerda, conteúdo principal à direita */
+  .layout-duas{display:grid;grid-template-columns:minmax(320px,400px) minmax(0,1fr);gap:32px;align-items:start}
+  .layout-duas>*>.titulo-secao:first-child,.layout-duas>*>.btn:first-child{margin-top:0}
+  .layout-ficha{grid-template-columns:minmax(320px,420px) minmax(0,1fr)}
+  .coluna-lado .grade-cards{display:block}
+  .coluna-lado .grade-cards>.card{margin-bottom:var(--esp-3)}
+  .grade-cards,.coluna-principal .grade-cards{grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
+  .layout-metades{margin-top:var(--esp-3)}
+  /* Relatório */
+  .seletor-periodo,.navegar-periodo{max-width:560px}
+  .grade-numeros{grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--esp-3)}
+  .grade-numeros .numero-relatorio strong{font-size:34px}
+  /* Login: cartão centralizado */
+  .app:not(.logado) .conteudo{max-width:440px;margin:48px auto;background:var(--cor-superficie);border:1px solid var(--cor-linha);border-radius:var(--raio-card);padding:32px 36px}
+}
+@media print{
+  .app.logado{display:block}
+  .layout-duas,.layout-metades,.grade-cards{display:block}
+}

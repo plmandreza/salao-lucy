@@ -266,3 +266,17 @@ Este arquivo comprova como a IA foi usada no projeto (slide 12). Para cada uso i
   - No PostgreSQL: o atendimento tinha 2 tubos de 7.0. O estoque passou de 5 para 7, o horário voltou para "confirmado", o atendimento sumiu e a cliente continuou.
   - No navegador automático: abriu a janela, confirmou e viu a linha sumir do histórico.
 - **Teste:** T-60 fica para eu executar e registrar com print.
+
+## Layout responsivo
+
+- **Data:** 25/11/2026
+- **O que pedi:** "não gostei desse formato de celular no PC. Minha ideia é que ele fosse responsivo, mesmo que a Lucy só use celular".
+- **Causa:** o Design System tinha decidido "coluna única de até 480 px" também no computador, como simplificação do MVP.
+- **O que a IA fez (só CSS e a estrutura das telas, sem mudar regras):**
+  - **Celular:** igual a antes.
+  - **Tablet:** cartões em 2 colunas.
+  - **Computador:** menu na lateral, 2 colunas por tela, cartões em grade e login num cartão centralizado.
+  - Na impressão do relatório, tudo volta para uma coluna.
+- **Defeito encontrado no teste:** no computador, a barra lateral subia por cima do título, por causa de uma regra antiga do menu de baixo (`bottom:0`). Foi corrigido com `bottom:auto`.
+- **Como a IA conferiu:** abriu todas as telas num navegador automático em 1440, 800 e 390 px, sem erros no console.
+- **Teste:** T-61 fica para eu executar e registrar com print.
